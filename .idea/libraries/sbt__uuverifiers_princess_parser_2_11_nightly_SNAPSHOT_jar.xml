@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="sbt: uuverifiers:princess-parser_2.11:nightly-SNAPSHOT:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/AppData/Local/Coursier/cache/v1/http/logicrunch.research.it.uu.se/maven/uuverifiers/princess-parser_2.11/nightly-SNAPSHOT/princess-parser_2.11-nightly-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/AppData/Local/Coursier/cache/v1/http/logicrunch.research.it.uu.se/maven/uuverifiers/princess-parser_2.11/nightly-SNAPSHOT/princess-parser_2.11-nightly-SNAPSHOT-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/AppData/Local/Coursier/cache/v1/http/logicrunch.research.it.uu.se/maven/uuverifiers/princess-parser_2.11/nightly-SNAPSHOT/princess-parser_2.11-nightly-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
