@@ -3,11 +3,11 @@ package seqSolver
 
 import ap.types.Sort
 import ap.parser._
-
-import automata.sfa.SFA;
-import automata.sfa.SFAEpsilon;
-import automata.sfa.SFAInputMove;
-import automata.sfa.SFAMove;
+import ap.terfor.conjunctions.Conjunction.collectQuantifiers
+import automata.sfa.SFA
+import automata.sfa.SFAEpsilon
+import automata.sfa.SFAInputMove
+import automata.sfa.SFAMove
 
 import scala.collection.JavaConverters._
 
@@ -23,7 +23,8 @@ object Main extends App {
 
     val interval = pt.FromFormula(i(pt.parameters(0)) <= pt.charSymbol &
                                   pt.charSymbol <= i(pt.parameters(0)) + 20)
-
+    print("quantifiere", collectQuantifiers(interval))
+    val f = i(pt.parameters(0)) <= pt.charSymbol
     val transitions : Seq[pt.SFAMove] = List(
       new SFAEpsilon(0, 1),
       new SFAInputMove(0, 0, interval)
@@ -36,6 +37,7 @@ object Main extends App {
 
   println("autA")
   println(autA)
+
 
   // Words [(p+5), (p+30)]
   val autB = {
@@ -96,4 +98,8 @@ object Main extends App {
   println("autF")
   println(autF)
 
+  val l = SFAUtilities()
+  val paths = l.ConstructAllPaths(sfa = autE)
+  l.EmptinessFormula(autE, paths,pt)
+  println("The automaton \n" + autE + "\nis empty: " + l.isEmpty(autE, pt))
 }
