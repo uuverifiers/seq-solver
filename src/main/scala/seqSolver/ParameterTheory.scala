@@ -63,12 +63,8 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
   def MkAtom(x: ITerm): Conjunction = // TODO: optimise
     prover.asConjunction(x === iCharSymbol0)
 
-  def FromFormula(f : IFormula) : Conjunction = {
+  def FromFormula(f : IFormula) : Conjunction =
     prover.asConjunction(f)
-  }
-  def makeExistentialFormula(t : ITerm): Unit = {
-    prover.makeExistential(t)
-  }
 
   // TODO: reduce?
 
