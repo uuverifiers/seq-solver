@@ -1,12 +1,16 @@
 package seqSolver
 import ap.SimpleAPI
 import SimpleAPI.ProverStatus
+import ap.parser.IExpression.i
 import ap.theories.Theory
-import ap.parser.{IConstant, IFormula, ITerm}
+import ap.parser.{IConstant, IExpression, IFormula, ITerm}
+import ap.terfor.TerForConvenience.term2RichLC
 import ap.types.Sort
 import ap.terfor.{ConstantTerm, Term}
 import ap.terfor.conjunctions.{Conjunction, Quantifier}
 import automata.sfa.{SFA, SFAMove}
+import ap.terfor.substitutions.ConstantSubst
+import seqSolver.Main.pt
 
 import java.util.Collection
 import java.util
@@ -22,6 +26,8 @@ object SFAUtilities {
 
 class SFAUtilities {
 
+
+
   def ConstructAllPaths(sfa: SFA[Conjunction, ITerm]): Set[Seq[Integer]] ={
     var res = Set[Seq[Integer]]()
     val s = mutable.Stack[Seq[Integer]]();
@@ -36,13 +42,12 @@ class SFAUtilities {
         res += current_path
       }
       else{
-        val test = sfa.getInputMovesFrom(last).asScala
-        val test2 = test.last.guard
-
         val successors_transitions  = sfa.getTransitionsFrom(last).asScala
         val successors = (for (n <- successors_transitions) yield n.to)
         println("l is ", successors)
         for (succ <- successors) {
+          //TODO better datastrucutre
+          // Save transition
           if (!current_path.contains(succ)){
             // Add all successor paths to the stack
             s.push(current_path ++ Seq(succ))
@@ -56,9 +61,12 @@ class SFAUtilities {
     res
   }
 
-  def PathFormula(path : Seq[Integer], sfa : SFA[Conjunction, ITerm], pt : ParameterTheory): Conjunction = {
+  def PathFormula(path : Seq[Integer], sfa : SFA[Conjunction, ITerm], pt : ParameterTheory, prover1: SimpleAPI): SimpleAPI.ProverStatus.Value = {
+    val prover = SimpleAPI.spawnWithAssertions
+    prover addTheories pt.theories
+    prover addConstantsRaw pt.parameters
+    prover addConstantsRaw pt.charSymbols
 
-    var res = Seq[Conjunction]()
     for (i <- 0 until path.length-1){
       println("Index", i)
       println("Node", path(i))
@@ -67,37 +75,34 @@ class SFAUtilities {
       for (tmp <- _tmp1.asScala){
         if (tmp.to == path(i+1)){
           //TODO more than one transition can happen?
-          println("From", tmp.from, " to ", tmp.to, "guard", tmp.guard)
-          res ++= Seq(tmp.guard)
+          println(pt.charSort, pt.order)
+          val tmp_assert = (pt.charSort newConstant "t")
+          prover addConstant tmp_assert
+
+          val z = ConstantSubst(pt.charSymbol, tmp_assert, prover.order)(tmp.guard)
+          val z1 = prover.asIFormula(z)
+          prover.addAssertion(z1)
+          println("From", tmp.from, " to ", tmp.to, "guard", z1)
         }
-        // TODO handle no guard and epsilon?
+        // If there is no input move to this node -> transition has no guard
       }
     }
-    println(res)
-    println(pt.MkAnd(res.asJavaCollection))
-    pt.MkAnd(res.asJavaCollection)
+    (prover.???)
   }
 
-  def EmptinessFormula(sfa : SFA[Conjunction, ITerm], all_paths: Set[Seq[Integer]], pt : ParameterTheory): Conjunction = {
-    val tmp = for (path <- all_paths) yield PathFormula(path, sfa, pt)
-    val res = pt.MkOr(tmp.asJavaCollection)
-    res
+  def EmptinessFormula(sfa : SFA[Conjunction, ITerm], all_paths: Set[Seq[Integer]], pt : ParameterTheory): Boolean = {
+
+    val tmp = for (path <- all_paths) yield PathFormula(path, sfa, pt, SimpleAPI.spawnWithAssertions)
+    tmp.contains(SimpleAPI.ProverStatus.Sat)
+
   }
 
   def isEmpty(sfa : SFA[Conjunction, ITerm], pt : ParameterTheory): Boolean = {
-    !pt.IsSatisfiable(EmptinessFormula(sfa,ConstructAllPaths(sfa), pt))
+
+    val empti_form = EmptinessFormula(sfa,ConstructAllPaths(sfa), pt)
+    println("All path formula... " + empti_form)
+    !empti_form
   }
 
 }
-
-object Path{
-  def apply(path : Seq[Integer]): Path = {
-    new Path(path)
-  }
-}
-
-class Path(val path : Seq[Integer]){
-  val pat = path
-}
-
 

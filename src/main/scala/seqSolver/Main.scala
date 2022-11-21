@@ -1,6 +1,7 @@
 
 package seqSolver
 
+import ap.api.SimpleAPI
 import ap.types.Sort
 import ap.parser._
 import ap.terfor.conjunctions.Conjunction.collectQuantifiers
@@ -23,8 +24,7 @@ object Main extends App {
 
     val interval = pt.FromFormula(i(pt.parameters(0)) <= pt.charSymbol &
                                   pt.charSymbol <= i(pt.parameters(0)) + 20)
-    print("quantifiere", collectQuantifiers(interval))
-    val f = i(pt.parameters(0)) <= pt.charSymbol
+    println(pt.IsSatisfiable(interval))
     val transitions : Seq[pt.SFAMove] = List(
       new SFAEpsilon(0, 1),
       new SFAInputMove(0, 0, interval)
@@ -38,6 +38,23 @@ object Main extends App {
   println("autA")
   println(autA)
 
+  val autTop = {
+    import IExpression._
+
+    val interval = pt.FromFormula(i(pt.parameters(0)) <= pt.charSymbol &
+      pt.charSymbol <= i(pt.parameters(0)) + 20)
+    val transitions : Seq[pt.SFAMove] = List(
+      new SFAEpsilon(0, 1),
+      new SFAInputMove(0, 0, interval)
+    )
+
+    SFA.MkSFA(transitions.asJava, 0,
+      List(new Integer(1), new Integer(1)).asJava,
+      pt)
+  }
+
+  println("autTop")
+  println(autTop)
 
   // Words [(p+5), (p+30)]
   val autB = {
@@ -97,9 +114,7 @@ object Main extends App {
 
   println("autF")
   println(autF)
-
+  val autG = autA.complement(pt)
   val l = SFAUtilities()
-  val paths = l.ConstructAllPaths(sfa = autE)
-  l.EmptinessFormula(autE, paths,pt)
-  println("The automaton \n" + autE + "\nis empty: " + l.isEmpty(autE, pt))
+  println("The automaton \n" + autF + "\nis empty: " + l.isEmpty(autF, pt))
 }
