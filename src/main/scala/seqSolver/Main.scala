@@ -9,6 +9,7 @@ import automata.sfa.SFA
 import automata.sfa.SFAEpsilon
 import automata.sfa.SFAInputMove
 import automata.sfa.SFAMove
+import seqSolver.preop.ConcatPreOp
 
 import scala.collection.JavaConverters._
 
@@ -116,5 +117,13 @@ object Main extends App {
   println(autF)
   val autG = autA.complement(pt)
   val l = SFAUtilities()
-  println("The automaton \n" + autF + "\nis empty: " + l.isEmpty(autF, pt))
+  println("The automaton \n" + autC + "\nis empty: " + l.isEmpty(autC, pt))
+
+  val concatTest = ConcatPreOp(List(List(),List()), autC, pt)
+  for (t <- concatTest){
+    println("\n")
+    println(t)
+    println("\n")
+  }
+
 }
