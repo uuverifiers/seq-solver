@@ -119,11 +119,11 @@ object Main extends App {
   val l = SFAUtilities()
   println("The automaton \n" + autC + "\nis empty: " + l.isEmpty(autC, pt))
 
-  val concatTest = ConcatPreOp(List(List(),List()), autC, pt)
+  /*val concatTest = ConcatPreOp(List(List(),List()), autC, pt)
   for (t <- concatTest){
     println("\n")
     println(t)
     println("\n")
-  }
+  }*/
 
 }

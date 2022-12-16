@@ -7,7 +7,6 @@ import seqSolver.ParameterTheory
 
 trait PreOp {
 
-  def apply(argumentConstraints : Seq[Seq[SFA[Conjunction, ITerm]]],
-            resultConstraint: SFA[Conjunction, ITerm], pt : ParameterTheory) : Iterator[Seq[SFA[Conjunction, ITerm]]]
+  def apply(resultConstraint: SFA[Conjunction, ITerm], pt : ParameterTheory) : Iterator[Seq[SFA[Conjunction, ITerm]]]
 
 }

@@ -19,6 +19,9 @@ import scala.collection.mutable.Stack
 import scala.collection.JavaConverters._
 
 object SFAUtilities {
+  def isEmpty(): Boolean = ???
+
+
   def apply(): SFAUtilities = {
     new SFAUtilities
   }
@@ -61,8 +64,9 @@ class SFAUtilities {
     res
   }
 
-  def PathFormula(path : Seq[Integer], sfa : SFA[Conjunction, ITerm], pt : ParameterTheory, prover1: SimpleAPI): SimpleAPI.ProverStatus.Value = {
-    val prover = SimpleAPI.spawnWithAssertions
+  // TODO optimization recursive
+  def PathFormula(path : Seq[Integer], sfa : SFA[Conjunction, ITerm], pt : ParameterTheory, prover: SimpleAPI): SimpleAPI.ProverStatus.Value = prover.scope {
+    // TODO move out
     prover addTheories pt.theories
     prover addConstantsRaw pt.parameters
     prover addConstantsRaw pt.charSymbols
@@ -76,17 +80,18 @@ class SFAUtilities {
         if (tmp.to == path(i+1)){
           //TODO more than one transition can happen?
           println(pt.charSort, pt.order)
-          val tmp_assert = (pt.charSort newConstant "t")
+          val tmp_assert = (pt.charSort newConstant ("t" + i))
           prover addConstant tmp_assert
 
           val z = ConstantSubst(pt.charSymbol, tmp_assert, prover.order)(tmp.guard)
-          val z1 = prover.asIFormula(z)
-          prover.addAssertion(z1)
-          println("From", tmp.from, " to ", tmp.to, "guard", z1)
+          //val z1 = prover.asIFormula(z)
+          prover.addAssertion(z)
+          println("From", tmp.from, " to ", tmp.to, "guard", z)
         }
         // If there is no input move to this node -> transition has no guard
       }
     }
+
     (prover.???)
   }
 
