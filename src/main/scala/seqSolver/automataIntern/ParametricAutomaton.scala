@@ -4,12 +4,16 @@ import ap.parser.ITerm
 import ap.terfor.conjunctions.Conjunction
 import ap.types.Sort
 import automata.sfa.{SFA, SFAInputMove, SFAMove}
-import seqSolver.{ParameterTheory, SFAUtilities, automataIntern}
+import seqSolver.{ParameterTheory, SFAUtilities, SeqTheory, automataIntern}
 import seqSolver.automataIntern.ParametricAutomaton.toSFA
 
+import java.util
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
+
+
 
 object ParametricAutomaton {
   private def toSFA(aut : Automaton) : SFA[Conjunction, ITerm] = aut match {
@@ -18,32 +22,40 @@ object ParametricAutomaton {
       throw new IllegalArgumentException
   }
 
-  def makeUniversal(sort: Sort) : ParametricAutomaton = {
-    val pt: ParameterTheory = ParameterTheory(sort, List(sort))
-    new ParametricAutomaton(SFA.getFullSFA(pt), pt, 0)
+
+
+  def makeUniversal(seqTheory : SeqTheory) : ParametricAutomaton = {
+    val pt: ParameterTheory = ParameterTheory(seqTheory.sort, List(seqTheory.sort))
+    new ParametricAutomaton(SFA.getFullSFA(pt), pt)
   }
+
+
 
 }
 
-class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : ParameterTheory, val parameters : Int) extends Automaton {
-  val parameter: Int = parameters
+class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : ParameterTheory) extends Automaton {
+
   val sort = pt.charSort
   /**
    * Union
    */
-  override def |(that: Automaton): Automaton = new ParametricAutomaton(underlying.unionWith(toSFA(that), pt), pt, parameters)
+  override def |(that: Automaton): Automaton = new ParametricAutomaton(underlying.unionWith(toSFA(that), pt), pt)
 
   /**
    * Intersection
    */
-  override def &(that: Automaton): Automaton = new ParametricAutomaton(underlying.intersectionWith(toSFA(that), pt), pt, parameters)
+  override def &(that: Automaton): Automaton = new ParametricAutomaton(underlying.intersectionWith(toSFA(that), pt), pt)
 
   /**
    * Complementation
    */
-  override def unary_! : Automaton = new ParametricAutomaton(underlying.complement(pt), pt, parameters)
+  override def unary_! : Automaton = new ParametricAutomaton(underlying.complement(pt), pt)
 
-  def isEmpty : Boolean = SFAUtilities.isEmpty()
+  def getSuccessors(s: Integer): Iterable[SFAInputMove[Conjunction, ITerm]] = {
+    underlying.getInputMovesFrom(s).asScala
+  }
+
+  def isEmpty : Boolean = underlying.isEmpty
 
   def apply(word : Seq[ITerm]) : Boolean = underlying.accepts(word.toList.asJava, pt)
 
@@ -51,15 +63,15 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
 
   lazy val states : Iterable[Integer] = underlying.getStates.asScala
 
-  lazy val acceptingStates : Iterable[Integer] = underlying.getFinalStates.asScala
+  lazy val acceptingStates : Set[Integer] = underlying.getFinalStates.asScala.toSet
 
   lazy val transitions : Iterable[SFAMove[Conjunction, ITerm]] = underlying.getTransitions.asScala
+
 }
 
 // TODO list of sort of the parameters
-class ParametricAutomatonBuilder(val sort : Sort) {
+class ParametricAutomatonBuilder(val parameterTheory: ParameterTheory) {
 
-  val pt: ParameterTheory = ParameterTheory(sort, List(sort))
   var stateCounter = 0
   var parameters = 0
   var init = 0
@@ -81,12 +93,16 @@ class ParametricAutomatonBuilder(val sort : Sort) {
     transitions += l
   }
 
+  def setFixedAutomaton(initialState : Int, transitions : util.Collection[SFAMove[Conjunction, ITerm]], accepting : List[Integer]) : ParametricAutomaton = {
+    new ParametricAutomaton(SFA.MkSFA(transitions, initialState, accepting.asJava, parameterTheory), parameterTheory)
+  }
+
   def getAutomaton : ParametricAutomaton = {
-    new ParametricAutomaton(SFA.MkSFA(transitions.asJava, init, acceptingStates.asJava, pt), pt, parameters)
+    new ParametricAutomaton(SFA.MkSFA(transitions.asJava, init, acceptingStates.asJava, parameterTheory), parameterTheory)
   }
 
   def makeUniversal : ParametricAutomaton = {
-    new automataIntern.ParametricAutomaton(SFA.getFullSFA(pt), pt, 0)
+    new automataIntern.ParametricAutomaton(SFA.getFullSFA(parameterTheory), parameterTheory)
   }
 
 }

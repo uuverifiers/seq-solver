@@ -35,7 +35,7 @@ object SolverTest extends App {
     val aut = SFA.MkSFA(transitions.asJava, 0,
                         List(new Integer(0), new Integer(1)).asJava,
                         pt)
-    new ParametricAutomaton(aut, pt, pt.parameters.size)
+    new ParametricAutomaton(aut, pt)
   }
 
   val autAId = seqTheory.autDatabase.registerAut(autA)

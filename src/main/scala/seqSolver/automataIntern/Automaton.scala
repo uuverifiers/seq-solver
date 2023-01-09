@@ -1,5 +1,7 @@
 package seqSolver.automataIntern
 
+import ap.parser.ITerm
+
 trait Automaton {
   /**
    * Union
@@ -15,6 +17,13 @@ trait Automaton {
    * Complementation
    */
   def unary_! : Automaton
+
+  /**
+   * Check whether the automaton accepts a given word.
+   */
+  def apply(word : Seq[ITerm]) : Boolean
+
+  def isEmpty : Boolean
   /*
     /**
      * Check whether this automaton accepts any word.

@@ -11,20 +11,65 @@ import ap.terfor.conjunctions.{Conjunction, Quantifier}
 import automata.sfa.{SFA, SFAMove}
 import ap.terfor.substitutions.ConstantSubst
 import seqSolver.Main.pt
+import seqSolver.automataIntern.{Automaton, ParametricAutomaton, ParametricAutomatonBuilder}
 
 import java.util.Collection
 import java.util
 import scala.collection.mutable
 import scala.collection.mutable.Stack
 import scala.collection.JavaConverters._
+import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
+
 
 object SFAUtilities {
-  def isEmpty(): Boolean = ???
 
 
   def apply(): SFAUtilities = {
     new SFAUtilities
   }
+  def intersection(product : Seq[Automaton]) : Automaton = product match {
+
+    case aut :: otherAuts => {
+      var _tmp = aut
+      for (oA <- otherAuts) {
+        _tmp = _tmp & oA
+      }
+      _tmp
+    }
+    case List() => {
+      throw new Exception("Called intersection on empty set")
+    }
+  }
+
+  def findUnsatCore(oldAuts : Seq[Automaton],
+                    newAut : Automaton) : Option[Seq[Automaton]] = {
+    val consideredAuts = new ArrayBuffer[Automaton]
+    consideredAuts += newAut
+    var cont = areConsistentAutomata(consideredAuts)
+    val oldAutsIt = oldAuts.iterator
+    while (cont && oldAutsIt.hasNext) {
+      consideredAuts += oldAutsIt.next()
+      cont = areConsistentAutomata(consideredAuts)
+    }
+
+    if (cont)
+      None
+
+    // remove automata to get small core
+    for (i <- (consideredAuts.size - 2) to 1 by -1) {
+      val removedAut = consideredAuts remove i
+      if (areConsistentAutomata(consideredAuts))
+        consideredAuts.insert(i, removedAut)
+    }
+    Some(consideredAuts)
+  }
+
+  def areConsistentAutomata(automatons: ArrayBuffer[Automaton]) : Boolean =
+    if (automatons.isEmpty){
+      true
+    } else{
+      !(automatons.reduceLeft(_ & _)).isEmpty
+    }
 }
 
 class SFAUtilities {
@@ -108,6 +153,11 @@ class SFAUtilities {
     println("All path formula... " + empti_form)
     !empti_form
   }
+
+
+
+
+
 
 }
 
