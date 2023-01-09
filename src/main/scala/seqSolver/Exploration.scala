@@ -203,8 +203,8 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         case None => //nothing
       }
     }
-    if (parameterProver.??? == ProverStatus.Unsat)
-      return None
+    //if (parameterProver.??? == ProverStatus.Unsat)
+    //  return None
 
     val funAppList =
       (for ((apps, res) <- sortedFunApps;
@@ -237,13 +237,12 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         input += SFAUtilities.intersection(store.getContents)
       }
 
-      val _tmp1 = new MHashMap[Automaton, MHashSet[Integer]]()
       val _tmp2 = new MHashMap[Automaton, MHashMap[Integer, MHashSet[MHashSet[Conjunction]]]]()
       val prover = SimpleAPI.spawnWithAssertions
       prover addTheories seqTheory.parameterTheory.theories
       prover addConstantsRaw seqTheory.parameterTheory.parameters
       prover addConstantsRaw seqTheory.parameterTheory.charSymbols
-      val result = parameterCheck(input.toList, prover, _tmp1, _tmp2 )
+      val result = parameterCheck(input.toList, prover, _tmp2 )
 
       if (result.isEmpty){
         // extract model
@@ -311,8 +310,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         val argCS = newConstraintsIt.next()
         for (a <- args)
           constraintStores(a).push
-        // push length constraints// parameter constraints?
-
         try {
           val newConstraints = new MHashSet[TermConstraint]
 
@@ -331,8 +328,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
               }
             }
 
-          // check parameter consistency?
-
           if (consistent) {
             val conflict = dfExploreOp(op, args, res, otherAuts, nextApps)
             if(Seqs.disjointSeq(newConstraints, conflict)) {
@@ -346,22 +341,9 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
             constraintStores(a).pop
             println("args: ", args)
           }
-          // pop length constraints ... pop parameter constraints?
+
         }
       }
-
-      // check if we need complete contents for conflicts
-      /*
-         if (needCompleteContentsForConflicts)
-        collectedConflicts ++=
-          (for (aut <- constraintStores(res).getCompleteContents)
-           yield TermConstraint(res, aut))
-      else
-        collectedConflicts += TermConstraint(res, resAut)
-
-       */
-
-      // collect conflicts of the arg dependencies?
       collectedConflicts.toSeq
     }
   }
@@ -401,12 +383,12 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
   protected val needCompleteContentsForConflicts : Boolean
 
-  def parameterCheck(allAutomata : List[Automaton], prover : SimpleAPI, path_map : MHashMap[Automaton, MHashSet[Integer]], automaton_to_constraints : MHashMap[Automaton,MHashMap[Integer, MHashSet[MHashSet[Conjunction]]]]): Option[Seq[TermConstraint]] = prover.scope {
+  def parameterCheck(allAutomata : List[Automaton], prover : SimpleAPI, automaton_to_constraints : MHashMap[Automaton,MHashMap[Integer, MHashSet[MHashSet[Conjunction]]]]): Option[Seq[TermConstraint]] = prover.scope {
 
     allAutomata match {
       case aut1 :: otherauts => {
         val aut = aut1.asInstanceOf[ParametricAutomaton]
-        var constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
+        val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
         val s = mutable.Stack[Int]()
         constraints.put(aut.initialState, new MHashSet[MHashSet[Conjunction]]())
@@ -436,7 +418,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   if (parameterProver.??? == ProverStatus.Sat){
                     // the next check might come to the conclusion that this path cannot be part of the solution
                     // TODO none = sat; otherwise return conflicts
-                    val l = parameterCheck(otherauts, prover, path_map, automaton_to_constraints)
+                    val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
                       return None
                     }
@@ -526,7 +508,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(final_state)
                   if (parameterProver.??? == ProverStatus.Sat){
-                    val l = parameterCheck(otherauts, prover, path_map, automaton_to_constraints)
+                    val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
                       return None
                     }
@@ -646,11 +628,6 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
           potentialConflicts = potentialConflicts.tail
         }
 
-        // TODO SFA utilities need a rewrite to parameteric automata
-        /*
-        check if there is a word accepted by all the automata
-        if it is inconsistent then the inc aut are the core and get added
-         */
         SFAUtilities.findUnsatCore(constraints, aut) match {
           case Some(core) => {
             addIncAutomata(core)
@@ -659,7 +636,6 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
           case None => {
             constraints += aut
             constraintSet += aut
-           // val c = TermConstraint(t, aut)
             None
           }
         }
