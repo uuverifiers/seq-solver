@@ -1,5 +1,6 @@
 package seqSolver.automataIntern
 
+import ap.api.SimpleAPI
 import ap.parser.ITerm
 
 trait Automaton {
@@ -21,7 +22,7 @@ trait Automaton {
   /**
    * Check whether the automaton accepts a given word.
    */
-  def apply(word : Seq[ITerm]) : Boolean
+  def apply(word : Seq[ITerm], prover : SimpleAPI) : Boolean
 
   def isEmpty : Boolean
   /*

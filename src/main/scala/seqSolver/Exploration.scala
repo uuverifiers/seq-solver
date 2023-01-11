@@ -72,7 +72,7 @@ object Exploration {
   def lazyExp(funApps: Seq[(PreOp, Seq[Term], Term)],
               seqTheory : SeqTheory,
               parameterProver : SimpleAPI,
-              initialConstraints : Seq[(Term,ParametricAutomaton)]
+              initialConstraints : Seq[(Term,Automaton)]
              ) : Exploration = new LazyExploration(funApps,seqTheory, parameterProver, initialConstraints)
 
   private case class FoundModel(model : Map[Term, Seq[ITerm]])
@@ -83,7 +83,7 @@ object Exploration {
 abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                            seqTheory : SeqTheory,
                            parameterProver : SimpleAPI,
-                           val initialConstraints : Seq[(Term, ParametricAutomaton)]) {
+                           val initialConstraints : Seq[(Term, Automaton)]) {
 
 
   println("Running backwards propagation")
@@ -203,8 +203,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         case None => //nothing
       }
     }
-    //if (parameterProver.??? == ProverStatus.Unsat)
-    //  return None
 
     val funAppList =
       (for ((apps, res) <- sortedFunApps;
@@ -236,17 +234,23 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         val store = constraintStores(t)
         input += SFAUtilities.intersection(store.getContents)
       }
-
+      // TODO vereinfache disjunktion zu konjunktion
       val _tmp2 = new MHashMap[Automaton, MHashMap[Integer, MHashSet[MHashSet[Conjunction]]]]()
       val prover = SimpleAPI.spawnWithAssertions
       prover addTheories seqTheory.parameterTheory.theories
       prover addConstantsRaw seqTheory.parameterTheory.parameters
       prover addConstantsRaw seqTheory.parameterTheory.charSymbols
       val result = parameterCheck(input.toList, prover, _tmp2 )
-
+      // TODO put parameters in model
       if (result.isEmpty){
         // extract model
         for (t <- leafTerms) {
+          /*
+          assign variables to letters
+          für jeden automaten eine liste von symbolen die edn pfad repräsentieren
+          eine weitere variable für länge des pfades?
+
+           */
           model.put(t, Seq(evalTerm(t)(parameterProver).get))
         }
         val allFunApps : Iterator[(PreOp, Seq[Term], Term)] =
@@ -383,6 +387,9 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
   protected val needCompleteContentsForConflicts : Boolean
 
+
+  // TODO sequences of conjunctions
+  // TODO kann man vorberechnen für jeden automaton
   def parameterCheck(allAutomata : List[Automaton], prover : SimpleAPI, automaton_to_constraints : MHashMap[Automaton,MHashMap[Integer, MHashSet[MHashSet[Conjunction]]]]): Option[Seq[TermConstraint]] = prover.scope {
 
     allAutomata match {
@@ -404,15 +411,17 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   // TODO generate a formula with proper vars and save them?
                   var counter = 0
                   val tmp_conjunction = new MHashSet[Conjunction]
+
                   // TODO keep a set of constants and only create new ones when we run out?
                   for (conj <- conjunction){
-                    val new_const = seqTheory.sort newConstant("a" + counter)
+                    // pfad speichern
+                    val new_const = seqTheory.parameterTheory.charSort newConstant("a" + counter)
                     counter += 1
                     parameterProver.addConstant(new_const)
                     val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, parameterProver.order)(conj)
                     tmp_conjunction.add(z)
                   }
-                  parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, prover.order))
+                  parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, parameterProver.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(current_state)
                   if (parameterProver.??? == ProverStatus.Sat){
@@ -442,6 +451,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                 case Some(constraint_bags) => {
                   for (conjunction <- constraint_bags){
                     val new_conj = conjunction.clone()
+                    // change for sequence
                     new_conj.add(successor.guard)
                     var subset = false
 
@@ -460,7 +470,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                       val tmp_conjunction = new MHashSet[Conjunction]
                       // TODO keep a set of constants and only create new ones when we run out?
                       for (conj <- conjunction){
-                        val new_const = seqTheory.sort newConstant("a" + counter)
+                        val new_const = seqTheory.parameterTheory.charSort newConstant("a" + counter)
                         counter += 1
                         prover.addConstant(new_const)
                         val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, prover.order)(conj)
@@ -498,7 +508,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   val tmp_conjunction = new MHashSet[Conjunction]
                   // TODO keep a set of constants and only create new ones when we run out?
                   for (conj <- conjunction){
-                    val new_const = seqTheory.sort newConstant("a" + counter)
+                    val new_const = seqTheory.parameterTheory.charSort newConstant("a" + counter)
                     counter += 1
                     parameterProver.addConstant(new_const)
                     val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, parameterProver.order)(conj)
@@ -540,7 +550,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
                       _seqTheory : SeqTheory,
                       _parameterProver : SimpleAPI,
-                      _initialConstraints : Seq[(Term, ParametricAutomaton)])
+                      _initialConstraints : Seq[(Term, Automaton)])
       extends Exploration(_funApps, _seqTheory, _parameterProver, _initialConstraints) {
   import Exploration._
 
@@ -665,8 +675,9 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
      * Check whether some word is accepted by all the stored constraints
      */
 
-    override def isAcceptedWord(w: Seq[ITerm]): Boolean =
-      constraints forall (_(w))
+    override def isAcceptedWord(w: Seq[ITerm]): Boolean = {
+      constraints forall (_(w, _parameterProver))
+    }
 
     /**
      * Produce an arbitrary word accepted by all the stored constraints

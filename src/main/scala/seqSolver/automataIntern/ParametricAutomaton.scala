@@ -1,5 +1,6 @@
 package seqSolver.automataIntern
 
+import ap.api.SimpleAPI
 import ap.parser.ITerm
 import ap.terfor.conjunctions.Conjunction
 import ap.types.Sort
@@ -57,7 +58,12 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
 
   def isEmpty : Boolean = underlying.isEmpty
 
-  def apply(word : Seq[ITerm]) : Boolean = underlying.accepts(word.toList.asJava, pt)
+  def apply(word : Seq[ITerm], prover : SimpleAPI) : Boolean = {
+
+
+
+    underlying.accepts(word.toList.asJava, pt)
+  }
 
   lazy val initialState : Int = underlying.getInitialState
 
