@@ -33,15 +33,12 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     }
   }
   private def callBackwardProp(goal : Goal) : Seq[Plugin.Action] =
-    try {
-      modelCache(goal.facts) {
-        findModel(goal)
-      } match {
-        case Some(m) => List()//handleSolution(goal, m)
-        case None => List(Plugin.AddFormula(Conjunction.TRUE))
-      }
-    } catch {
-      case _ => List()
+
+    modelCache(goal.facts) {
+      findModel(goal)
+    } match {
+      case Some(m) => List()//handleSolution(goal, m)
+      case None => List(Plugin.AddFormula(Conjunction.TRUE))
     }
 
   def findModel(goal: Goal) : Option[Map[Term, Seq[ITerm]]] = {
@@ -87,11 +84,14 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
     SimpleAPI.withProver { parameterProver =>
       val pProver = {
+
         parameterProver setConstructProofs true
         parameterProver addConstantsRaw(order sort order.orderedConstants)
         // TODO global parameter conjs?
-        parameterProver addAssertion goal.facts.predConj
+        //parameterProver addAssertion goal.facts.predConj
 
+        parameterProver addTheories theory.parameterTheory.theories
+        parameterProver addConstantsRaw theory.parameterTheory.parameters
         implicit val o = parameterProver.order
         (parameterProver)
       }

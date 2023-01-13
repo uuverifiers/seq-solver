@@ -117,7 +117,7 @@ object Main extends App {
   println(autF)
   val autG = autA.complement(pt)
   val l = SFAUtilities()
-  println("The automaton \n" + autC + "\nis empty: " + l.isEmpty(autC, pt))
+  println("The automaton \n" + autA + "\nis empty: " + l.isEmpty(autA, pt))
 
   /*val concatTest = ConcatPreOp(List(List(),List()), autC, pt)
   for (t <- concatTest){

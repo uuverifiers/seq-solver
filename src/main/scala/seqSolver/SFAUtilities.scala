@@ -53,7 +53,7 @@ object SFAUtilities {
     }
 
     if (cont)
-      None
+      return None
 
     // remove automata to get small core
     for (i <- (consideredAuts.size - 2) to 1 by -1) {

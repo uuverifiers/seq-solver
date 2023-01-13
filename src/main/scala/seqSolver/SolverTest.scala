@@ -38,7 +38,26 @@ object SolverTest extends App {
     new ParametricAutomaton(aut, pt)
   }
 
+  val autB = {
+    import IExpression._
+    val pt         = seqTheory.parameterTheory
+    val Seq(p, q)  = seqTheory.parameterTheoryPars
+    val Seq(c, c1) = seqTheory.parameterTheoryChars
+
+    val interval = pt.FromFormula(i(p) + 5 <= c & c <= i(p) + 30)
+
+    val transitions : Seq[pt.SFAMove] = List(
+      new SFAInputMove(0, 1, interval)
+    )
+
+    val aut = SFA.MkSFA(transitions.asJava, 0,
+      List(new Integer(1)).asJava,
+      pt)
+    new ParametricAutomaton(aut, pt)
+  }
+
   val autAId = seqTheory.autDatabase.registerAut(autA)
+  val autBId = seqTheory.autDatabase.registerAut(autB)
 
   SimpleAPI.withProver(enableAssert = true) { p =>
     import p._
@@ -50,13 +69,13 @@ object SolverTest extends App {
     val s = createConstant("s", SeqSort)
 
     // membership in parameterised automaton
-    !! (seq_in_re_id(s, autAId))
+    !! (seq_in_re_id(s, autBId))
 
     // global constraint on the parameters
-    !! (seqTheory.parameterTerms(0) >= 0)
+    //!! (seqTheory.parameterTerms(0) >= 0)
 
-    println(???)
-    println(partialModel)
+    println(" res " + ???)
+    println("partial model: " + partialModel)
   }
 
 }

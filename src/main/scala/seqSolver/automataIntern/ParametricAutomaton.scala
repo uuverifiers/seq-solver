@@ -36,6 +36,8 @@ object ParametricAutomaton {
 
 class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : ParameterTheory) extends Automaton {
 
+  override def toString: String = underlying.toString
+
   val sort = pt.charSort
   /**
    * Union
@@ -56,7 +58,10 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
     underlying.getInputMovesFrom(s).asScala
   }
 
-  def isEmpty : Boolean = underlying.isEmpty
+  def isEmpty : Boolean = {
+    println("PAut is empty" + underlying.isEmpty)
+    underlying.isEmpty
+  }
 
   def apply(word : Seq[ITerm], prover : SimpleAPI) : Boolean = {
 
