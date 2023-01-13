@@ -6,7 +6,7 @@ import ap.api.SimpleAPI
 import ap.parser.ITerm
 import ap.proof.goal.Goal
 import ap.proof.theoryPlugins.Plugin
-import ap.terfor.Term
+import ap.terfor.{Term, TerForConvenience}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.linearcombination.LinearCombination
 import ap.terfor.preds.Atom
@@ -16,12 +16,20 @@ import seqSolver.preop.PreOp
 
 import scala.collection.mutable.ArrayBuffer
 
+object SeqTheoryPlugin {
+
+  val enableAssertions = true
+
+}
+
 class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
+  import SeqTheoryPlugin._
+
   import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, seq_head, seq_tail}
   private val modelCache = new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
 
-  override def handleGoal(goal : Goal) : Seq[Plugin.Action] = {
+  override def handleGoal(goal : Goal) : Seq[Plugin.Action] =
     goalState(goal) match {
       case Plugin.GoalState.Final => {
         println("have to solve: " + goal.facts)
@@ -31,9 +39,8 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
         List()
       }
     }
-  }
-  private def callBackwardProp(goal : Goal) : Seq[Plugin.Action] =
 
+  private def callBackwardProp(goal : Goal) : Seq[Plugin.Action] =
     modelCache(goal.facts) {
       findModel(goal)
     } match {
@@ -82,24 +89,27 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
         (for ((_, args, res) <- funApps.iterator;
               t <- args.iterator ++ Iterator(res)) yield t)).toSet
 
-    SimpleAPI.withProver { parameterProver =>
-      val pProver = {
+    SimpleAPI.withProver(enableAssert = enableAssertions) { pProver =>
+//      pProver setConstructProofs true
+      pProver addConstantsRaw(order sort order.orderedConstants)
 
-        parameterProver setConstructProofs true
-        parameterProver addConstantsRaw(order sort order.orderedConstants)
-        // TODO global parameter conjs?
-        //parameterProver addAssertion goal.facts.predConj
+      pProver addTheories theory.parameterTheory.theories
+      pProver addConstantsRaw theory.parameterTheory.parameters
 
-        parameterProver addTheories theory.parameterTheory.theories
-        parameterProver addConstantsRaw theory.parameterTheory.parameters
-        implicit val o = parameterProver.order
-        (parameterProver)
-      }
+      pProver.addAssertion(goal.facts.arithConj)
+
+      implicit val o = pProver.order
+      import TerForConvenience._
+
+      val equations =
+        for ((p, t) <- theory.parameterPreds zip theory.parameterTheory.parameters;
+             a <- goal.facts.predConj.positiveLitsWithPred(p))
+        yield (a.head - t)
+
+      pProver.addAssertion(equations === 0)
 
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
-      val result = exploration.findModel
-
-      result
+      exploration.findModel
     }
   }
 }

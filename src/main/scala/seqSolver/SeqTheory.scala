@@ -93,6 +93,8 @@ class SeqTheory(elementSort : Sort,
   val totalityAxioms = Conjunction.TRUE
   val triggerRelevantFunctions : Set[IFunction] = Set()
 
+  val parameterPreds = for (f <- parameterFuns) yield functionPredicateMap(f)
+
   // TODO: add dependencies as derived from sorts
 
   def plugin = Some(new SeqTheoryPlugin(this))

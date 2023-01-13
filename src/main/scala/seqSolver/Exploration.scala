@@ -238,7 +238,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       // TODO vereinfache disjunktion zu konjunktion
       val _tmp2 = new MHashMap[Automaton, MHashMap[Integer, MHashSet[Seq[Conjunction]]]]()
 
-      val prover = SimpleAPI.spawnWithAssertions
+      val prover = SimpleAPI(enableAssert = SeqTheoryPlugin.enableAssertions)
       prover addTheories seqTheory.parameterTheory.theories
       prover addConstantsRaw seqTheory.parameterTheory.parameters
       prover addConstantsRaw seqTheory.parameterTheory.charSymbols

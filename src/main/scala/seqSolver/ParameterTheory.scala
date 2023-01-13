@@ -46,7 +46,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
 
   val parameterSorts = parameters map (Sort sortOf _)
 
-  private val prover = SimpleAPI.spawnWithAssertions
+  private val prover = SimpleAPI(enableAssert =SeqTheoryPlugin.enableAssertions)
 
   prover addTheories theories
   prover addConstantsRaw charSymbols
