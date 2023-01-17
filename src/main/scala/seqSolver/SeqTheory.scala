@@ -3,11 +3,11 @@
 package seqSolver
 
 import seqSolver.automataIntern.AutDatabase
-
 import ap.Signature
+import ap.parser.IExpression.Predicate
 import ap.parser._
 import ap.theories.{Theory, TheoryRegistry}
-import ap.types.{Sort, ProxySort, MonoSortedIFunction, MonoSortedPredicate}
+import ap.types.{MonoSortedIFunction, MonoSortedPredicate, ProxySort, Sort}
 import ap.terfor.conjunctions.Conjunction
 
 object SeqTheory {
@@ -115,4 +115,11 @@ class SeqTheory(elementSort : Sort,
 
   override def toString = sort.name
 
+  private val predFunMap =
+    (for ((f,p) <- functionPredicateMap) yield (p,f)).toMap
+
+  object FunPred {
+    def apply(f : IFunction) : Predicate = functionPredicateMap(f)
+    def unapply(p : Predicate) : Option[IFunction] = predFunMap get p
+  }
 }

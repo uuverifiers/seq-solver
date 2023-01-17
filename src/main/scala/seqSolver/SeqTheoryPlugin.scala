@@ -6,13 +6,13 @@ import ap.api.SimpleAPI
 import ap.parser.ITerm
 import ap.proof.goal.Goal
 import ap.proof.theoryPlugins.Plugin
-import ap.terfor.{Term, TerForConvenience}
+import ap.terfor.{TerForConvenience, Term}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.linearcombination.LinearCombination
 import ap.terfor.preds.Atom
 import ap.util.LRUCache
 import seqSolver.automataIntern.Automaton
-import seqSolver.preop.PreOp
+import seqSolver.preop.{ConcatPreOp, PreOp}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -25,7 +25,7 @@ object SeqTheoryPlugin {
 class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
   import SeqTheoryPlugin._
 
-  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, seq_head, seq_tail}
+  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, seq_head, seq_tail, FunPred, parameterTerms}
   private val modelCache = new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
 
@@ -70,8 +70,16 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       case lc =>
         throw new Exception("Could not decode regex id " + lc)
     }
+    println("preds" + theory.predicates + "parameter terms " + parameterTerms)
     for (a <- atoms.positiveLits) a.pred match {
       case `seq_in_re_id` => decodeRegexID(a, false)
+      case p if (theory.predicates contains p  ) =>
+        translateFunction(a) match {
+          case Some((op, args, res)) =>
+            funApps += ((op(), args, res))
+          case _ => println("ignoring " + p + " for backwards prop")//throw new Exception("Cannot handle literal " +a)
+        }
+
       case _ =>
     }
 
@@ -109,7 +117,16 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       pProver.addAssertion(equations === 0)
 
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
-      exploration.findModel
+      val res = exploration.findModel
+
+      println("Result of exploration: " + res)
+
+      res
     }
+  }
+  def translateFunction(a : Atom) : Option[(() => PreOp, Seq[Term], Term)] = a.pred match {
+    case FunPred(`seq_++`) =>
+      Some((() => ConcatPreOp, List(a(0),a(1)),a(2)))
+    case _ => None//throw new Exception("Function not handled: " + a)
   }
 }

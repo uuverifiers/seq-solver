@@ -242,6 +242,8 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       prover addTheories seqTheory.parameterTheory.theories
       prover addConstantsRaw seqTheory.parameterTheory.parameters
       prover addConstantsRaw seqTheory.parameterTheory.charSymbols
+
+      println("debugging parametercheck : " + input.toList + " all terms " + allTerms)
       val result = parameterCheck(input.toList, prover, _tmp2)
       println("test")
       println(" result : " + result)
@@ -249,14 +251,18 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       // TODO put parameters in model
       if (result.isEmpty){
         // extract model
-        for (t <- leafTerms) {
+        for ((t, word) <- leafTerms zip words) {
           /*
           assign variables to letters
           für jeden automaten eine liste von symbolen die edn pfad repräsentieren
           eine weitere variable für länge des pfades?
 
            */
+          model.put(t, (for (l <- word) yield evalTerm(l)(parameterProver).get).toList)
 
+        }
+        for (p <- seqTheory.parameterTheory.parameters){
+          model.put(p, Seq(evalTerm(p)(parameterProver).get))
         }
         val allFunApps : Iterator[(PreOp, Seq[Term], Term)] =
           (for ((ops, res) <- sortedFunApps.reverseIterator;
@@ -290,7 +296,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
           model.put(res, resValue)
         }
-        println("throwing model?")
+        println("throwing model: " + model + " terms " + allTerms)
         throw FoundModel(model.toMap)
       }
       else{
@@ -401,7 +407,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
     allAutomata match {
       case aut1 :: otherauts => {
-        println("enter check Parameters")
         val aut = aut1.asInstanceOf[ParametricAutomaton]
         val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
@@ -411,7 +416,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         constraints.put(aut.initialState, _tmpset)
         s.push(aut.initialState)
         while (s.nonEmpty){
-          println("entering dfs 411")
+          println("entering dfs 419")
           val current_state = s.pop()
           if (aut.acceptingStates.contains(current_state)){
             println("enter accepting states 414")
@@ -480,18 +485,18 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
             }
           }
           else{
-            println("Not final state 471")
+            println("Not final state 488")
             // for all successors do
             val all_transitions = aut.getSuccessors(current_state)
             // TODO Handle epsilon?
             for (successor <- all_transitions){
               val _tmpset = constraints(current_state)
-              val successor_conj = constraints.getOrElse(successor.to, _tmpset)
+              val successor_conj = constraints.getOrElse(successor.to, new MHashSet[Seq[Conjunction]]())
               // TODO bug with successor conj where tmp set is not removed
               // get the current possible conjs
               constraints.get(current_state) match {
                 case None => {
-                  println("No constraints found 480")
+                  println("No constraints found 499")
                   throw new Exception("Final state with no constraints? Return True?")
                 }
                 case Some(constraint_bags) => {
@@ -501,7 +506,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     // change for sequence
                     new_conj ++= Seq(successor.guard)
                     var subset = false
-
+                    println("successor conj " + successor_conj)
                     for (successor_con <- successor_conj){
                       if (new_conj.toSet.subsetOf(successor_con.toSet)){
                         println(successor_con, new_conj)
@@ -509,6 +514,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                         // TODO break?
                       }
                     }
+
                     if (subset) {
                       println("Subset is true")
                       // do nothing
