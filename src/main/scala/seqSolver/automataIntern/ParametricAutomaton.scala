@@ -58,6 +58,10 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
     underlying.getInputMovesFrom(s).asScala
   }
 
+  def getAllSuccessors(s: Integer) : Iterable[SFAMove[Conjunction, ITerm]] = {
+    underlying.getTransitionsFrom(s).asScala
+  }
+
   def isEmpty : Boolean = {
     println("PAut is empty" + underlying.isEmpty)
     underlying.isEmpty

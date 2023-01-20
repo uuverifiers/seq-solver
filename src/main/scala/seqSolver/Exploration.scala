@@ -8,7 +8,7 @@ import ap.terfor.{ConstantTerm, Term}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.substitutions.{ConstantSubst, VariableSubst}
 import ap.util.Seqs
-import automata.sfa.SFA
+import automata.sfa.{SFA, SFAEpsilon, SFAInputMove}
 import seqSolver.Exploration.{ConflictSet, ConstraintStore, FoundModel, TermConstraint}
 import seqSolver.automataIntern.{Automaton, ParametricAutomaton}
 import seqSolver.preop.PreOp
@@ -427,36 +427,34 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                 throw new Exception("Final state with no constraints? Return True?")
               }
               case Some(constraint_bags) => {
+
                 println("Some constraints can be found" + constraint_bags)
                 for (conjunction <- constraint_bags){
-                  println("enter check Parameters 422")
-                  // TODO generate a formula with proper vars and save them?
+
+                  println(" Parameterprover PUSH")
+                  parameterProver.push
                   var counter = 0
                   val tmp_conjunction = new ArrayBuffer[Conjunction]
                   val tmp_word = new ArrayBuffer[ConstantTerm]
 
-                  // TODO keep a set of constants and only create new ones when we run out?
-                  println("conjunction : " + conjunction)
                   for (conj <- conjunction){
                     // pfad speichern
                     if (conj != Conjunction.TRUE){
                       val new_const = seqTheory.parameterTheory.charSort newConstant("l" + counter)
-                      println("new const : " + new_const)
                       counter += 1
                       parameterProver.addConstant(new_const)
-                      println("before doing constant sub")
                       val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, parameterProver.order)(conj)
-                      println("const subst : " + z)
 
                       tmp_conjunction += z
                       tmp_word += new_const
                     }
                   }
                   println(tmp_conjunction)
+
                   parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, parameterProver.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(current_state)
-                  println("Checking parameterprover status 447")
+                  println("Checking parameterprover status 447" + tmp_conjunction + parameterProver.???)
                   if (parameterProver.??? == ProverStatus.Sat){
                     words += tmp_word
                     // the next check might come to the conclusion that this path cannot be part of the solution
@@ -478,6 +476,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
                     // Nothing, keep searching, i.e. go to the next state in the stack
                   }
+                  println(" Parameterprover POP")
                   parameterProver.pop
                 }
                 println("enter check Parameters 461")
@@ -487,7 +486,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
           else{
             println("Not final state 488")
             // for all successors do
-            val all_transitions = aut.getSuccessors(current_state)
+            val all_transitions = aut.getAllSuccessors(current_state)
             // TODO Handle epsilon?
             for (successor <- all_transitions){
               val _tmpset = constraints(current_state)
@@ -504,7 +503,12 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   for (conjunction <- constraint_bags){
                     var new_conj = conjunction
                     // change for sequence
-                    new_conj ++= Seq(successor.guard)
+                    successor match {
+                      case epsilon: SFAEpsilon[_, _] => new_conj ++= Seq(Conjunction.TRUE)
+                      case move: SFAInputMove[_, _] => new_conj ++= Seq(move.guard)
+                      case _ =>
+                    }
+
                     var subset = false
                     println("successor conj " + successor_conj)
                     for (successor_con <- successor_conj){
@@ -539,9 +543,11 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                           println("Push successor " + successor.to)
                           s.push(successor.to)
                           successor_new_bag += (new_conj)
+                          println("Successor bag : " + new_conj + " " + prover.???)
                           //constraints.put(successor.to, successor_conj)
                         }
                         else{
+                          println(new_conj)
                           println("Path not sat 520")
                           // collect conflicts?
                         }
@@ -570,6 +576,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
               }
               case Some(constraint_bags) => {
                 for (conjunction <- constraint_bags){
+                  parameterProver.push
                   // TODO check if it is sat for entire automaton up to here
                   var counter = 0
                   val tmp_conjunction = new ArrayBuffer[Conjunction]

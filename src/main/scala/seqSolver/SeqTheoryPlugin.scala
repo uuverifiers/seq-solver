@@ -3,6 +3,7 @@
 package seqSolver
 
 import ap.api.SimpleAPI
+import ap.basetypes.IdealInt
 import ap.parser.ITerm
 import ap.proof.goal.Goal
 import ap.proof.theoryPlugins.Plugin
@@ -10,9 +11,12 @@ import ap.terfor.{TerForConvenience, Term}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.linearcombination.LinearCombination
 import ap.terfor.preds.Atom
+import ap.theories.TheoryRegistry
+import ap.types.SortedPredicate
 import ap.util.LRUCache
 import seqSolver.automataIntern.Automaton
 import seqSolver.preop.{ConcatPreOp, PreOp}
+import ap.util.Seqs
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -44,7 +48,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     modelCache(goal.facts) {
       findModel(goal)
     } match {
-      case Some(m) => List()//handleSolution(goal, m)
+      case Some(m) => handleSolution(goal, m)
       case None => List(Plugin.AddFormula(Conjunction.TRUE))
     }
 
@@ -103,7 +107,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
       pProver addTheories theory.parameterTheory.theories
       pProver addConstantsRaw theory.parameterTheory.parameters
-
+      println(goal.facts.arithConj)
       pProver.addAssertion(goal.facts.arithConj)
 
       implicit val o = pProver.order
@@ -113,7 +117,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
         for ((p, t) <- theory.parameterPreds zip theory.parameterTheory.parameters;
              a <- goal.facts.predConj.positiveLitsWithPred(p))
         yield (a.head - t)
-
+      println(equations)
       pProver.addAssertion(equations === 0)
 
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
@@ -128,5 +132,28 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     case FunPred(`seq_++`) =>
       Some((() => ConcatPreOp, List(a(0),a(1)),a(2)))
     case _ => None//throw new Exception("Function not handled: " + a)
+  }
+
+  def handleSolution(goal : Goal,
+                     model : Map[Term, Seq[ITerm]])
+  : Seq[Plugin.Action] = {
+    val predConj = goal.facts.predConj
+    val allAtoms = predConj.positiveLits ++ predConj.negativeLits
+    val nonTheoryAtoms =
+      allAtoms filterNot {
+        a => TheoryRegistry.lookupSymbol(a.pred) match {
+          case Some(`theory`) => true
+          case _ => false
+        }
+      }
+
+    val encodedSeqs =
+      (for (a <- nonTheoryAtoms.iterator;
+            sorts = SortedPredicate argumentSorts a;
+            (t@LinearCombination.Constant(IdealInt(id)), theory.sort) <- a.iterator zip sorts.iterator)
+        yield (t, theory.autDatabase id2Aut id)).toVector
+
+    println("predconj: " + predConj + " allatoms: " + allAtoms + " nontheory atoms: " + nonTheoryAtoms + " encodedseqs : " + encodedSeqs)
+    List()
   }
 }
