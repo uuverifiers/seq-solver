@@ -16,10 +16,6 @@ class SeqTheoryBuilder extends MSeqTheoryBuilder {
   def setElementSort(sort : Sort) : Unit =
     elementSort = sort
 
-  lazy val theory = {
-    println("building ..." + elementSort)
-    println(elementSort.hashCode)
-    new SeqTheory(elementSort, List())
-  }
+  lazy val theory = new SeqTheory(elementSort, List())
 
 }
