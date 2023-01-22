@@ -29,7 +29,7 @@ object SeqTheoryPlugin {
 class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
   import SeqTheoryPlugin._
 
-  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, seq_head, seq_tail, FunPred, parameterTerms}
+  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred, parameterTerms}
   private val modelCache = new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
 
@@ -150,7 +150,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     val encodedSeqs =
       (for (a <- nonTheoryAtoms.iterator;
             sorts = SortedPredicate argumentSorts a;
-            (t@LinearCombination.Constant(IdealInt(id)), theory.sort) <- a.iterator zip sorts.iterator)
+            (t@LinearCombination.Constant(IdealInt(id)), theory.SeqSort) <- a.iterator zip sorts.iterator)
         yield (t, theory.autDatabase id2Aut id)).toVector
 
     println("predconj: " + predConj + " allatoms: " + allAtoms + " nontheory atoms: " + nonTheoryAtoms + " encodedseqs : " + encodedSeqs)
