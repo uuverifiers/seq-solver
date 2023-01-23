@@ -198,7 +198,9 @@ object SolverTest extends App {
     //!! (seqTheory.parameterTerms(0) >= 0)
 
     println(" res " + ???)
-    println("partial model: " + partialModel)
+    println("s1: " + evalToTerm(s1))
+    println("s2: " + evalToTerm(s2))
+    println("s3: " + evalToTerm(s3))
   }
 
 }
