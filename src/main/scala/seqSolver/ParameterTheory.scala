@@ -1,20 +1,19 @@
 
 package seqSolver
 
-import theory.BooleanAlgebra
+import theory.{BooleanAlgebra, BooleanAlgebraSubst}
 import utilities.Pair
 import automata.sfa.{SFAMove => ASFAMove}
-
 import ap.SimpleAPI
 import SimpleAPI.ProverStatus
 import ap.theories.Theory
-import ap.parser.{ITerm, IConstant, IFormula}
+import ap.parser.{IConstant, IFormula, IFunction, ITerm}
 import ap.types.Sort
-import ap.terfor.{Term, ConstantTerm}
+import ap.terfor.{ConstantTerm, Term}
 import ap.terfor.conjunctions.{Conjunction, Quantifier}
+import ap.terfor.substitutions.ConstantSubst
 
 import java.util.Collection
-
 import scala.collection.JavaConverters._
 
 object ParameterTheory {
@@ -35,7 +34,7 @@ object ParameterTheory {
 class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
                       val parameters  : IndexedSeq[ConstantTerm],
                       val theories    : Seq[Theory])
-      extends BooleanAlgebra[Conjunction, ITerm] {
+      extends BooleanAlgebraSubst[Conjunction, ConstantTerm, ITerm] {
 
   type Pred          = Conjunction
   type Domain        = ITerm
@@ -125,4 +124,59 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
     }
   }
 
+  /**
+   * Replaces every variable x in the unary function <code>f1</code>
+   * the application to the function <code>f2</code> (f2(x))
+   *
+   * @return f1(f2(x))
+   */
+  override def MkSubstFuncFunc(f1: ConstantTerm, f2: ConstantTerm): ConstantTerm = prover.scope {
+    f1
+  }
+
+  /**
+   * Replaces every variable x in the unary function <code>f</code>
+   * with the constant <code>c</code>
+   *
+   * @return f(c)
+   */
+  override def MkSubstFuncConst(f: ConstantTerm, s: Domain): Domain = prover.scope {
+    f
+  }
+  /**
+   * Replaces every variable x in the predicate <code>p</code>
+   * with the application to the function <code>f</code> (f(x))
+   *
+   * @return p(f(x))
+   */
+  override def MkSubstFuncPred(f: ConstantTerm, p: Pred): Pred = prover.scope {
+    ConstantSubst(charSymbol, f, order)(p)
+  }
+  /**
+   * Make a constant function initialized by the constant <code>s</code>
+   *
+   * @return lambda x.s
+   */
+  override def MkFuncConst(s: Domain): ConstantTerm = prover.scope {
+    s match {
+      case IConstant(c) => c
+      case _ => throw new Exception("MkFuncConst called with non constant")
+    }
+  }
+  /**
+   * Check whether <code>f1</code> and <code>f2</code> are equivalent relative to the predicate <code>p</code>
+   *
+   * @return lambda x.(p(x) and f1(x) != f2(x))
+   */
+  override def CheckGuardedEquality(p: Pred, f: ConstantTerm, f1: ConstantTerm): Boolean = prover.scope {
+    ???
+  }
+  /**
+   * get the restricted output based on <code>p</code> and <code>f</code>
+   *
+   * @return \psi(y) = \exists x. \phi(x) \wedge f(x)=y
+   */
+  override def getRestrictedOutput(p: Pred, f: ConstantTerm): Pred = prover.scope {
+    ???
+  }
 }

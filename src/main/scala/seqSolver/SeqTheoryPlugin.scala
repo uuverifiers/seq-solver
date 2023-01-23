@@ -258,8 +258,48 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
             (t@LinearCombination.Constant(IdealInt(id)), theory.SeqSort) <- a.iterator zip sorts.iterator)
         yield (t, theory.autDatabase id2Aut id)).toVector
 
-    println("predconj: " + predConj + " allatoms: " + allAtoms + " nontheory atoms: " + nonTheoryAtoms + " encodedseqs : " + encodedSeqs)
-    List()
+    val extModel = (model)// ++ encodedSeqs).toMap
+
+    val variableClasses =
+      (for ((t, w) <- extModel.iterator)
+        yield (t,w)).toList groupBy(_._2)
+
+    println("predconj: " + predConj + " allatoms: " + allAtoms + " nontheory atoms: " + nonTheoryAtoms + " encodedseqs : " + encodedSeqs +"variable classes " + variableClasses)
+
+    // TODO
+    if (variableClasses forall { case (_, c) => c.size <= 1 })
+      return List()
+
+    val interestingConstants =
+      (for (a <- nonTheoryAtoms; c <- a.constants) yield c).toSet
+
+    /*
+
+   println("interesting constants " + interestingConstants)
+
+    if (interestingConstants.isEmpty)
+      return List()
+    */
+    implicit val order = goal.order
+    import TerForConvenience._
+
+    println("variable classes " + variableClasses.keySet + " interesting constants " + interestingConstants)
+    (for (w <- variableClasses.keySet.toSeq.iterator;
+          terms = variableClasses(w) map (_._1);
+          interestingTerms = terms filter {
+            t => t.constants.isEmpty ||
+              !Seqs.disjoint(t.constants, interestingConstants)
+          };
+          if interestingTerms.size > 1 &&
+            interestingTerms.exists(!_.constants.isEmpty)) yield {
+      val allEq =
+        conj(for (Seq(t1, t2) <- interestingTerms sliding 2) yield t1 === t2)
+      Plugin.AxiomSplit(List(),
+        (allEq, List()) :: (
+          for (eq <- allEq.iterator)
+            yield (!eq, List())).toList,
+        theory)
+    }).toStream.headOption.toSeq
   }
  */
 }
