@@ -17,7 +17,7 @@ import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet 
 
 
 object ParametricAutomaton {
-  private def toSFA(aut : Automaton) : SFA[Conjunction, ITerm] = aut match {
+  def toSFA(aut : Automaton) : SFA[Conjunction, ITerm] = aut match {
     case that : ParametricAutomaton => that.underlying
     case _ =>
       throw new IllegalArgumentException

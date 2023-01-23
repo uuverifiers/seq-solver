@@ -189,8 +189,8 @@ object SolverTest extends App {
     val s2 = createConstant("s2", SeqSort)
     val s3 = createConstant("s3", SeqSort)
     // membership in parameterised automaton
-    !! (seq_in_re_id(s1, autP1Id))
-    !! (seq_in_re_id(s1, autP2Id))
+    //!! (seq_in_re_id(s1, autP1Id))
+    !! (seq_in_re_id(s1, autP3Id))
    // val l = (seq_++(s2,s3))
     //!! (l === s1)
 
