@@ -4,10 +4,10 @@ package seqSolver
 
 import ap.api.SimpleAPI
 import ap.basetypes.IdealInt
-import ap.parser.ITerm
+import ap.parser.{ITerm, IIntLit}
 import ap.proof.goal.Goal
 import ap.proof.theoryPlugins.Plugin
-import ap.terfor.{TerForConvenience, Term}
+import ap.terfor.{TerForConvenience, Term, Formula, VariableTerm}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.linearcombination.LinearCombination
 import ap.terfor.preds.Atom
@@ -29,16 +29,24 @@ object SeqTheoryPlugin {
 class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
   import SeqTheoryPlugin._
 
-  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred, parameterTerms}
-  private val modelCache = new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
+  import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred,
+    parameterTerms, parameterPreds, seqConstant, _seq_empty, _seq_cons}
+  private val modelCache =
+    new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
+  val bwdPropHandledPreds =
+    theory.predicates filterNot { p => p == _seq_empty || p == _seq_cons }
 
   override def handleGoal(goal : Goal) : Seq[Plugin.Action] =
     goalState(goal) match {
-      case Plugin.GoalState.Final => {
-        println("have to solve: " + goal.facts)
-        callBackwardProp(goal)
-      }
+      case Plugin.GoalState.Final =>
+        if (!Seqs.disjointSeq(goal.facts.predicates, bwdPropHandledPreds)) {
+          println
+          println("have to solve: " + goal.facts)
+          callBackwardProp(goal)
+        } else {
+          List()
+        }
       case _ => {
         List()
       }
@@ -46,10 +54,39 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
   private def callBackwardProp(goal : Goal) : Seq[Plugin.Action] =
     modelCache(goal.facts) {
+      // TODO: make cache more precise, filter out in particular
+      // seqConstant atoms
       findModel(goal)
     } match {
-      case Some(m) => handleSolution(goal, m)
-      case None => List(Plugin.AddFormula(Conjunction.TRUE))
+      case Some(m) => {
+        // handleSolution(goal, m)
+        println("Found solution: " + m)
+
+        // mark the symbols in the solution to make sure that nobody
+        // else will replace them by values
+        implicit val o = goal.order
+        import TerForConvenience._
+        val facts = goal.facts.predConj
+
+        val modelConstants =
+          (m.keys.flatMap(_.constants).toSet & o.orderedConstants) ++
+          (for (p <- parameterPreds.iterator;
+                a <- facts.positiveLitsWithPred(p).iterator;
+                c <- a.constants)
+           yield c)
+
+        val preds =
+          goal.reduceWithFacts(
+            conj(for (c <- modelConstants) yield seqConstant(List(l(c)))))
+
+        if (preds.isTrue)
+          List()
+        else
+          List(Plugin.AddAxiom(List(), preds, theory))
+      }
+      case None => {
+        List(Plugin.AddFormula(Conjunction.TRUE))
+      }
     }
 
   def findModel(goal: Goal) : Option[Map[Term, Seq[ITerm]]] = {
@@ -107,7 +144,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
       pProver addTheories theory.parameterTheory.theories
       pProver addConstantsRaw theory.parameterTheory.parameters
-      println(goal.facts.arithConj)
+//      println(goal.facts.arithConj)
       pProver.addAssertion(goal.facts.arithConj)
 
       implicit val o = pProver.order
@@ -117,7 +154,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
         for ((p, t) <- theory.parameterPreds zip theory.parameterTheory.parameters;
              a <- goal.facts.predConj.positiveLitsWithPred(p))
         yield (a.head - t)
-      println(equations)
+//      println(equations)
       pProver.addAssertion(equations === 0)
 
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
@@ -134,9 +171,77 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     case _ => None//throw new Exception("Function not handled: " + a)
   }
 
+  override def computeModel(goal : Goal) : Seq[Plugin.Action] =
+    if (Seqs.disjointSeq(goal.facts.predicates, bwdPropHandledPreds)) {
+      List()
+    } else {
+      println
+      println("computeModel: " + goal.facts)
+
+      implicit val order = goal.order
+      import TerForConvenience._
+
+      val model = (modelCache(goal.facts) {
+                     // TODO: make cache more precise, filter out in particular
+                     // seqConstant atoms
+                     findModel(goal)
+                   }).get
+
+      val seqFormulas =
+        conj(goal.facts.iterator filter {
+               f => !Seqs.disjointSeq(f.predicates, theory.predicates)
+             })
+
+      var varCnt = 0
+      val extraFors = new ArrayBuffer[Formula]
+      
+      def newVar : VariableTerm = {
+        varCnt = varCnt + 1
+        v(varCnt - 1)
+      }
+
+      def translateElement(t : ITerm) : LinearCombination = t match {
+        case IIntLit(value) => l(value)
+      }
+
+      // Translate the values of sequence variables
+      for ((t, seq) <- model)
+        if (t.constants subsetOf order.orderedConstants) {
+          val startId = newVar
+          extraFors += Atom(_seq_empty, List(l(startId)), order)
+
+          val finalId = seq.foldRight(startId) {
+            case (el, id) => {
+              val nextId = newVar
+              extraFors += Atom(_seq_cons,
+                                List(translateElement(el),
+                                     l(id), l(nextId)), order)
+              nextId
+            }
+          }
+
+          extraFors += (t === finalId)
+        }
+
+      // Translate the values of parameters
+      for ((p, t) <-
+             theory.parameterPreds zip theory.parameterTheory.parameters;
+           a <- goal.facts.predConj.positiveLitsWithPred(p)) {
+        val seq = model(t)
+        assert(seq.size == 1)
+        extraFors += (a.head === translateElement(seq.head))
+      }
+
+      val solutionFormula = exists(varCnt, conj(extraFors))
+
+      List(Plugin.RemoveFacts(seqFormulas),
+           Plugin.AddAxiom(List(seqFormulas), solutionFormula, theory))
+    }
+
+
+/*
   def handleSolution(goal : Goal,
-                     model : Map[Term, Seq[ITerm]])
-  : Seq[Plugin.Action] = {
+                     model : Map[Term, Seq[ITerm]]) : Seq[Plugin.Action] = {
     val predConj = goal.facts.predConj
     val allAtoms = predConj.positiveLits ++ predConj.negativeLits
     val nonTheoryAtoms =
@@ -156,4 +261,5 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     println("predconj: " + predConj + " allatoms: " + allAtoms + " nontheory atoms: " + nonTheoryAtoms + " encodedseqs : " + encodedSeqs)
     List()
   }
+ */
 }
