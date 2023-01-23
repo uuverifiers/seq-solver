@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ $(uname) = "Linux" ]; then
+    pathCmd="readlink -f"
+elif [ $(uname) = "Darwin" ]; then
+    pathCmd="stat -f %N"
+else
+    pathCmd="realpath"
+fi
+
+BASEDIR=`dirname $($pathCmd $0)`
+TARGET=`echo $BASEDIR/target/scala-*/seq-solver-assembly*.jar`
+LIBDIR=$BASEDIR/lib
+SCALA=scala
+JAVA=java
+export JAVA_OPTS="-Xss20000k -Xmx2000m"
+
+princessParams=()
+seqSolverParams=""
+
+for p; do
+    case "$p" in
+        XXX)
+            if [ x"$seqSolverParams" = x"" ]; then
+                seqSolverParams=$p
+            else
+                seqSolverParams=$seqSolverParams,$p
+            fi
+            ;;
+        *)
+            princessParams+=("$p")
+            ;;
+    esac
+done
+
+exec $JAVA $JAVA_OPTS -cp $TARGET \
+     seqSolver.SeqSolverMain -seqSolver=seqSolver.SeqTheory:$seqSolverParams \
+     "${princessParams[@]}"
