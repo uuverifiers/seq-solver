@@ -25,6 +25,10 @@ trait Automaton {
   def apply(word : Seq[ITerm], prover : SimpleAPI) : Boolean
 
   def isEmpty : Boolean
+
+  def isAccept(s : Integer) : Boolean
+
+  def initialState : Int
   /*
     /**
      * Check whether this automaton accepts any word.

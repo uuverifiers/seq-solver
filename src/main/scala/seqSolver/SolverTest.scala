@@ -11,6 +11,8 @@ import automata.sfa.SFA
 import automata.sfa.SFAEpsilon
 import automata.sfa.SFAInputMove
 import automata.sfa.SFAMove
+import transducers.sft.{SFT, SFTInputMove, SFTMove}
+import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 
 import scala.collection.JavaConverters._
 
@@ -168,6 +170,59 @@ object SolverTest extends App {
       pt)
     new ParametricAutomaton(aut, pt)
   }
+
+  val increment10Transducer = {
+    import IExpression._
+
+    val pt         = seqTheory.parameterTheory
+    val Seq(p, q)  = seqTheory.parameterTheoryPars
+    val Seq(c, c1) = seqTheory.parameterTheoryChars
+
+    val incrementFunction = c + 10
+    val intervalTop = Conjunction.TRUE
+
+    val transitions : Seq[pt.SFTMove] = List(
+      new SFTInputMove(0,0,intervalTop , Seq(incrementFunction).asJava)
+    )
+    val finStates = new MHashMap[Integer, java.util.Set[java.util.List[ITerm]]]
+    finStates.put(0, new MHashSet[java.util.List[ITerm]].asJava)
+
+    val trans = SFT.MkSFT(transitions.asJava, 0, finStates.asJava, seqTheory.parameterTheory)
+    new ParametricTransducer(trans, pt)
+  }
+
+  println("transducer: " + increment10Transducer)
+  println("test1 " + increment10Transducer.preImage(autPaper3))
+  val l = List(Int2ITerm(1),Int2ITerm(2),Int2ITerm(3),Int2ITerm(4),Int2ITerm(5),Int2ITerm(7))
+  println("test2 " + increment10Transducer(l))
+
+  val negativeToPositiveInts = {
+    import IExpression._
+
+    val pt         = seqTheory.parameterTheory
+    val Seq(p, q)  = seqTheory.parameterTheoryPars
+    val Seq(c, c1) = seqTheory.parameterTheoryChars
+
+    val flip = c * -1
+    val identity = ConstantTerm2ITerm(c)
+    val intervalGreater = pt.FromFormula(c > 0)
+    val intervalSmallerEqual = pt.FromFormula(c <= 0)
+
+    val transitions : Seq[pt.SFTMove] = List(
+      new SFTInputMove(0,0,intervalGreater , Seq(identity).asJava),
+    new SFTInputMove(0,0,intervalSmallerEqual , Seq(flip).asJava)
+    )
+    val finStates = new MHashMap[Integer, java.util.Set[java.util.List[ITerm]]]
+    finStates.put(0, new MHashSet[java.util.List[ITerm]].asJava)
+
+    val trans = SFT.MkSFT(transitions.asJava, 0, finStates.asJava, seqTheory.parameterTheory)
+    new ParametricTransducer(trans, pt)
+  }
+  println("transducer2: " + negativeToPositiveInts)
+  println("test3 " + negativeToPositiveInts.preImage(autPaper3))
+  val l2 = List(Int2ITerm(1),Int2ITerm(-2),Int2ITerm(3),Int2ITerm(4),Int2ITerm(-5),Int2ITerm(7))
+  println("test4 " + negativeToPositiveInts(l))
+  println("test5 " + negativeToPositiveInts(l2))
 
   val autAId = seqTheory.autDatabase.registerAut(autA)
   val autBId = seqTheory.autDatabase.registerAut(autB)
