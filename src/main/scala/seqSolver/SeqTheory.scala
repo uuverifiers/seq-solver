@@ -11,6 +11,8 @@ import ap.theories.{Theory, TheoryRegistry}
 import ap.theories.sequences.{SeqTheory => MSeqTheory}
 import ap.types.{MonoSortedIFunction, MonoSortedPredicate, ProxySort, Sort}
 import ap.terfor.conjunctions.Conjunction
+import ap.terfor.{ConstantTerm, Term}
+import ap.proof.goal.Goal
 
 import scala.collection.{Map => GMap}
 import scala.collection.mutable.{HashMap => MHashMap, Map => MMap,
@@ -118,6 +120,10 @@ class SeqTheory(elementSort : Sort,
     (for ((name, sort) <- parameters)
      yield MonoSortedIFunction(name, List(), sort, true, false)).toIndexedSeq
 
+  val charParameterFun =
+    MonoSortedIFunction("charParameter",
+                        List(Sort.Integer), ElementSort, true, false)
+
   val parameterTerms =
     for (f <- parameterFuns) yield IFunApp(f, List())
 
@@ -128,7 +134,8 @@ class SeqTheory(elementSort : Sort,
   val functions =
     List(seq_empty, seq_cons, seq_unit, seq_++,
          seq_len, seq_extract, seq_indexof, seq_at, seq_nth,
-         seq_update, seq_replace) ++ parameterFuns
+         seq_update, seq_replace, charParameterFun) ++ parameterFuns
+
   val additionalPredicates =
     List(seq_in_re_id, seq_contains, seq_prefixof, seq_suffixof, seqConstant)
 
@@ -136,13 +143,50 @@ class SeqTheory(elementSort : Sort,
 
   val parameterTheoryChars =
     Vector(elementSort newConstant "c", elementSort newConstant "c1")
-  val parameterTheoryPars =
+  val baseParameterTheoryPars =
     (for ((n, s) <- parameters) yield (s newConstant n)).toIndexedSeq
 
-  val parameterTheory =
-    new ParameterTheory(parameterTheoryChars, parameterTheoryPars, List())
+  private val charParameters = new ArrayBuffer[ConstantTerm]
+  private var parameterTheoryInstantiated : Boolean = false
+
+  lazy val parameterTheory = {
+    parameterTheoryInstantiated = true
+    val pars = baseParameterTheoryPars ++ charParameters
+    new ParameterTheory(parameterTheoryChars, pars, List())
+  }
 
   val autDatabase = new AutDatabase(this)
+
+  /**
+   * Allocate a new parameter used to translate expressions to
+   * parameterised automata. Returned are the new parameter to be used
+   * on the automaton side, as well as a term to refer to the
+   * parameter on the logic side.
+   */
+  def allocateCharParameter : (ConstantTerm, ITerm) = synchronized {
+    if (parameterTheoryInstantiated)
+      throw new Exception(
+        "Parameters cannot be allocated once parameter theory has been " +
+          "instantiated")
+
+    import IExpression._
+    val n = charParameters.size
+    val p = elementSort newConstant ("charPar_" + n)
+    charParameters += p
+    (p, charParameterFun(n))
+  }
+
+  def parameterTheoryPars = parameterTheory.parameters
+
+  def enumParameterTerms(goal : Goal) : Iterator[(ConstantTerm, Term)] = {
+    val facts = goal.facts.predConj
+
+    (for ((c,p) <- baseParameterTheoryPars.iterator zip _parameterFuns.iterator;
+          a     <- facts.positiveLitsWithPred(p).iterator)
+     yield (c, a.last)) ++
+    (for (a <- facts.positiveLitsWithPred(_charParameterFun).iterator)
+     yield (charParameters(a.head.constant.intValueSafe), a.last))
+  }
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -168,16 +212,25 @@ class SeqTheory(elementSort : Sort,
   val totalityAxioms = Conjunction.TRUE
   val triggerRelevantFunctions : Set[IFunction] = Set()
 
-  val parameterPreds = for (f <- parameterFuns) yield functionPredicateMap(f)
+  val _parameterFuns = for (f <- parameterFuns) yield functionPredicateMap(f)
+  val _charParameterFun = functionPredicateMap(charParameterFun)
+
+  val _seq_empty = functionPredicateMap(seq_empty)
+  val _seq_cons  = functionPredicateMap(seq_cons)
 
   // TODO: add dependencies as derived from sorts
 
   override val modelGenPredicates = Set(seqConstant)
 
+  //////////////////////////////////////////////////////////////////////////////
+
   def plugin = Some(new SeqTheoryPlugin(this))
 
-  val _seq_empty = functionPredicateMap(seq_empty)
-  val _seq_cons  = functionPredicateMap(seq_cons)
+  override def iPreprocess(f : IFormula, signature : Signature)
+                          : (IFormula, Signature) = {
+    val visitor1 = new SeqTheoryPreprocessor (this)
+    (visitor1(f), signature)
+  }
 
   //////////////////////////////////////////////////////////////////////////////
 

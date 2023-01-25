@@ -30,7 +30,8 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
   import SeqTheoryPlugin._
 
   import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred,
-    parameterTerms, parameterPreds, seqConstant, _seq_empty, _seq_cons}
+    parameterTerms, _parameterFuns, _charParameterFun,
+    seqConstant, _seq_empty, _seq_cons}
   private val modelCache =
     new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
@@ -70,7 +71,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
         val modelConstants =
           (m.keys.flatMap(_.constants).toSet & o.orderedConstants) ++
-          (for (p <- parameterPreds.iterator;
+          (for (p <- _parameterFuns.iterator ++ Iterator(_charParameterFun);
                 a <- facts.positiveLitsWithPred(p).iterator;
                 c <- a.constants)
            yield c)
@@ -151,11 +152,9 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       import TerForConvenience._
 
       val equations =
-        for ((p, t) <- theory.parameterPreds zip theory.parameterTheory.parameters;
-             a <- goal.facts.predConj.positiveLitsWithPred(p))
-        yield (a.head - t)
-//      println(equations)
-      pProver.addAssertion(equations === 0)
+        conj(for ((c, t) <- theory.enumParameterTerms(goal)) yield (c === t))
+
+      pProver.addAssertion(equations)
 
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
       val res = exploration.findModel
@@ -224,12 +223,10 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
         }
 
       // Translate the values of parameters
-      for ((p, t) <-
-             theory.parameterPreds zip theory.parameterTheory.parameters;
-           a <- goal.facts.predConj.positiveLitsWithPred(p)) {
-        val seq = model(t)
+      for ((c, t) <- theory.enumParameterTerms(goal)) {
+        val seq = model(c)
         assert(seq.size == 1)
-        extraFors += (a.head === translateElement(seq.head))
+        extraFors += (t === translateElement(seq.head))
       }
 
       val solutionFormula = exists(varCnt, conj(extraFors))
