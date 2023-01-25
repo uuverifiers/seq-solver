@@ -4,14 +4,17 @@ package seqSolver
 import theory.{BooleanAlgebra, BooleanAlgebraSubst}
 import utilities.Pair
 import automata.sfa.{SFAMove => ASFAMove}
+import transducers.sft.{SFTMove => ASFTMove}
 import ap.SimpleAPI
 import SimpleAPI.ProverStatus
 import ap.theories.Theory
-import ap.parser.{IConstant, IFormula, IFunction, ITerm}
+import ap.parser.{ConstantSubstVisitor, IConstant, IFormula, IFunction, ITerm}
 import ap.types.Sort
 import ap.terfor.{ConstantTerm, Term}
 import ap.terfor.conjunctions.{Conjunction, Quantifier}
 import ap.terfor.substitutions.ConstantSubst
+import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
+
 
 import java.util.Collection
 import scala.collection.JavaConverters._
@@ -34,11 +37,12 @@ object ParameterTheory {
 class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
                       val parameters  : IndexedSeq[ConstantTerm],
                       val theories    : Seq[Theory])
-      extends BooleanAlgebraSubst[Conjunction, ConstantTerm, ITerm] {
+      extends BooleanAlgebraSubst[Conjunction, ITerm, ITerm] {
 
   type Pred          = Conjunction
   type Domain        = ITerm
   type SFAMove       = ASFAMove[Pred, Domain]
+  type SFTMove       = ASFTMove[Pred, ITerm, Domain]
 
   val charSymbol     = charSymbols.head
   val charSort       = Sort sortOf charSymbol
@@ -130,8 +134,10 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    *
    * @return f1(f2(x))
    */
-  override def MkSubstFuncFunc(f1: ConstantTerm, f2: ConstantTerm): ConstantTerm = prover.scope {
-    f1
+  override def MkSubstFuncFunc(f1: ITerm, f2: ITerm): ITerm = {
+    val l = new MHashMap[ConstantTerm, ITerm]
+    l.put(charSymbol, f1)
+    ConstantSubstVisitor(f2, l)
   }
 
   /**
@@ -140,8 +146,10 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    *
    * @return f(c)
    */
-  override def MkSubstFuncConst(f: ConstantTerm, s: Domain): Domain = prover.scope {
-    f
+  override def MkSubstFuncConst(f: ITerm, s: Domain): Domain =  {
+    val l = new MHashMap[ConstantTerm, ITerm]
+    l.put(charSymbol, s)
+    ConstantSubstVisitor(f, l)
   }
   /**
    * Replaces every variable x in the predicate <code>p</code>
@@ -149,15 +157,17 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    *
    * @return p(f(x))
    */
-  override def MkSubstFuncPred(f: ConstantTerm, p: Pred): Pred = prover.scope {
-    ConstantSubst(charSymbol, f, order)(p)
+  override def MkSubstFuncPred(f: ITerm, p: Pred): Pred = prover.scope {
+    val l = new MHashMap[ConstantTerm, ITerm]
+    l.put(charSymbol, f)
+    prover.asConjunction(ConstantSubstVisitor(prover.asIFormula(p), l))
   }
   /**
    * Make a constant function initialized by the constant <code>s</code>
    *
    * @return lambda x.s
    */
-  override def MkFuncConst(s: Domain): ConstantTerm = prover.scope {
+  override def MkFuncConst(s: Domain): ITerm =  {
     s match {
       case IConstant(c) => c
       case _ => throw new Exception("MkFuncConst called with non constant")
@@ -168,7 +178,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    *
    * @return lambda x.(p(x) and f1(x) != f2(x))
    */
-  override def CheckGuardedEquality(p: Pred, f: ConstantTerm, f1: ConstantTerm): Boolean = prover.scope {
+  override def CheckGuardedEquality(p: Pred, f: ITerm, f1: ITerm): Boolean = prover.scope {
     ???
   }
   /**
@@ -176,7 +186,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    *
    * @return \psi(y) = \exists x. \phi(x) \wedge f(x)=y
    */
-  override def getRestrictedOutput(p: Pred, f: ConstantTerm): Pred = prover.scope {
+  override def getRestrictedOutput(p: Pred, f: ITerm): Pred = prover.scope {
     ???
   }
 }

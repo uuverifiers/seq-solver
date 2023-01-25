@@ -38,6 +38,8 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
 
   override def toString: String = underlying.toString
 
+  override def isAccept(s: Integer) : Boolean = acceptingStates.contains(s)
+
   val sort = pt.charSort
   /**
    * Union
