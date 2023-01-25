@@ -489,6 +489,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
             val all_transitions = aut.getAllSuccessors(current_state)
             // TODO Handle epsilon?
             for (successor <- all_transitions){
+              println("enter search with successor " + successor)
               val _tmpset = constraints(current_state)
               val successor_conj = constraints.getOrElse(successor.to, new MHashSet[Seq[Conjunction]]())
               // TODO bug with successor conj where tmp set is not removed
@@ -499,7 +500,8 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   throw new Exception("Final state with no constraints? Return True?")
                 }
                 case Some(constraint_bags) => {
-                  val successor_new_bag = new MHashSet[Seq[Conjunction]]()
+                  println("constraint bags " + constraint_bags)
+                  var successor_new_bag = new MHashSet[Seq[Conjunction]]()
                   for (conjunction <- constraint_bags){
                     var new_conj = conjunction
                     // change for sequence
@@ -521,6 +523,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
                     if (subset) {
                       println("Subset is true")
+                      successor_new_bag = constraint_bags
                       // do nothing
                     }
                     else{
