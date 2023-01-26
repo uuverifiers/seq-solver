@@ -29,6 +29,8 @@ trait Automaton {
   def isAccept(s : Integer) : Boolean
 
   def initialState : Int
+
+  def stateCount : Int
   /*
     /**
      * Check whether this automaton accepts any word.

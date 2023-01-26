@@ -84,6 +84,8 @@ class SeqTheory(elementSort : Sort,
     new MonoSortedIFunction(prefix + "cons", List(ESo, SSo), SSo, true, false)
   val seq_unit =
     new MonoSortedIFunction("seq_unit", List(ESo), SSo, true, false)
+  val seq_reverse =
+    new MonoSortedIFunction("seq.reverse", List(SSo), SSo,   true,  false)
 
   val seq_++ =
     new MonoSortedIFunction(prefix + "++", List(SSo, SSo), SSo, true, false)

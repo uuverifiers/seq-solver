@@ -12,10 +12,12 @@ import automata.sfa.SFAEpsilon
 import automata.sfa.SFAInputMove
 import automata.sfa.SFAMove
 import seqSolver.SolverTest.seqTheory
+import seqSolver.automataIntern.ParametricAutomaton.reverseAut
 import transducers.sft.{SFT, SFTInputMove, SFTMove}
 
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
+import scala.language.postfixOps
 
 object SRATest extends App {
 
@@ -128,7 +130,7 @@ object SRATest extends App {
         new SFAInputMove(19, 20, small_d),
         new SFAInputMove(20, 21, colon),
         new SFAInputMove(21, 22, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
-        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
+        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p1)))),
         new SFAInputMove(23, 24, pt.MkAnd(num, pt.FromFormula(c === i(p2)))),
         new SFAInputMove(24, 25, dot),
         new SFAInputMove(25, 26, num),
@@ -703,7 +705,7 @@ object SRATest extends App {
     prCL6
   }
 
-  def getProductParserC9 : ParametricAutomaton = {
+  def getProductParserCL9 : ParametricAutomaton = {
     val prC9 = {
       val transitions : Seq[pt.SFAMove] = List(
 
@@ -754,14 +756,14 @@ object SRATest extends App {
 
       println("trans" + transitions)
 
-      val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(22)).asJava, pt)
+      val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(39)).asJava, pt)
       println("aut " + aut)
       new ParametricAutomaton(aut, pt)
     }
     prC9
   }
 
-  def getProductParserCL9 : ParametricAutomaton = {
+  def getProductParserC9 : ParametricAutomaton = {
     val prCL9 = {
       val transitions : Seq[pt.SFAMove] = List(
 
@@ -818,10 +820,21 @@ object SRATest extends App {
     prCL9
   }
 
-  val aut = getProductParserCL4
-  println("ip6 packet parser : \n" + aut)
+  val aut1 = getProductParserC2
+  println("ip6 packet parser : \n" + aut1)
+  val aut2 = getProductParserCL2
+  println("aut 2 packet parser : \n" + aut2)
+  val test2 = !aut2
+  println("test complement: " + test2)
 
-  val autId = seqTheory.autDatabase.registerAut(aut)
+  //val test = reverseAut(aut2)
+  //println("test reverse " + test)
+
+  val test3 = test2 & aut1
+  println("test 3 " + test3)
+
+  val autId1 = seqTheory.autDatabase.registerAut(aut1)
+  val autId2 = seqTheory.autDatabase.registerAut(test2)
 
 
 
@@ -831,11 +844,12 @@ object SRATest extends App {
 
     addTheory(seqTheory)
 
-    import seqTheory.{SeqSort, seq_in_re_id, seq_++}
+    import seqTheory.{SeqSort, seq_in_re_id, seq_++, seq_empty, seq_reverse}
 
     var s1 = createConstant("s1", SeqSort)
     // membership in parameterised automaton
-    !! (seq_in_re_id(s1, autId))
+    !! (seq_in_re_id(s1, autId1))
+    !! (seq_in_re_id(s1, autId2))
     //!! (seq_in_re_id(s1, autP3Id))
     // val l = (seq_++(s2,s3))
     //!! (l === s1)

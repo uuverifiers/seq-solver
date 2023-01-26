@@ -4,10 +4,10 @@ package seqSolver
 
 import ap.api.SimpleAPI
 import ap.basetypes.IdealInt
-import ap.parser.{ITerm, IIntLit}
+import ap.parser.{IIntLit, ITerm}
 import ap.proof.goal.Goal
 import ap.proof.theoryPlugins.Plugin
-import ap.terfor.{TerForConvenience, Term, Formula, VariableTerm}
+import ap.terfor.{Formula, TerForConvenience, Term, VariableTerm}
 import ap.terfor.conjunctions.Conjunction
 import ap.terfor.linearcombination.LinearCombination
 import ap.terfor.preds.Atom
@@ -15,7 +15,7 @@ import ap.theories.TheoryRegistry
 import ap.types.SortedPredicate
 import ap.util.LRUCache
 import seqSolver.automataIntern.Automaton
-import seqSolver.preop.{ConcatPreOp, PreOp}
+import seqSolver.preop.{ConcatPreOp, PreOp, ReversePreOp}
 import ap.util.Seqs
 
 import scala.collection.mutable.ArrayBuffer
@@ -31,7 +31,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
   import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred,
     parameterTerms, _parameterFuns, _charParameterFun,
-    seqConstant, _seq_empty, _seq_cons}
+    seqConstant, _seq_empty, _seq_cons, seq_reverse}
   private val modelCache =
     new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
@@ -167,6 +167,8 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
   def translateFunction(a : Atom) : Option[(() => PreOp, Seq[Term], Term)] = a.pred match {
     case FunPred(`seq_++`) =>
       Some((() => ConcatPreOp, List(a(0),a(1)),a(2)))
+    case FunPred(`seq_reverse`) =>
+      Some((() => ReversePreOp, List(a(0),a(1)),a(2)))
     case _ => None//throw new Exception("Function not handled: " + a)
   }
 

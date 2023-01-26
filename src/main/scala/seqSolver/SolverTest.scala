@@ -238,7 +238,7 @@ object SolverTest extends App {
 
     addTheory(seqTheory)
 
-    import seqTheory.{SeqSort, seq_in_re_id, seq_++}
+    import seqTheory.{SeqSort, seq_in_re_id, seq_++, seq_empty}
 
     var s1 = createConstant("s1", SeqSort)
     val s2 = createConstant("s2", SeqSort)
