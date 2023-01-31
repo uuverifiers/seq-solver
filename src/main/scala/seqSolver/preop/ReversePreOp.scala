@@ -1,4 +1,5 @@
 package seqSolver.preop
+import ap.SimpleAPI
 import ap.parser.ITerm
 import seqSolver.SeqTheory
 import seqSolver.automataIntern.ParametricAutomaton.reverseAut
@@ -14,7 +15,7 @@ object ReversePreOp extends PreOp {
 
   }
 
-  override def eval(arguments: Seq[Seq[ITerm]]): Option[Seq[ITerm]] = {
+  override def eval(arguments: Seq[Seq[ITerm]], prover : SimpleAPI): Option[Seq[ITerm]] = {
 
     Some(arguments(0).reverse)
   }

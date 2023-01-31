@@ -14,8 +14,8 @@ import ap.terfor.preds.Atom
 import ap.theories.TheoryRegistry
 import ap.types.SortedPredicate
 import ap.util.LRUCache
-import seqSolver.automataIntern.Automaton
-import seqSolver.preop.{ConcatPreOp, PreOp, ReversePreOp}
+import seqSolver.automataIntern.{Automaton, Transducer}
+import seqSolver.preop.{ConcatPreOp, PreOp, ReversePreOp, TransducerPreOp}
 import ap.util.Seqs
 
 import scala.collection.mutable.ArrayBuffer
@@ -31,7 +31,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
   import theory.{seq_in_re_id, seq_++, seq_empty, seq_cons, FunPred,
     parameterTerms, _parameterFuns, _charParameterFun,
-    seqConstant, _seq_empty, _seq_cons, seq_reverse}
+    seqConstant, _seq_empty, _seq_cons, seq_reverse, seq_in_relation_id}
   private val modelCache =
     new LRUCache[Conjunction, Option[Map[Term, Seq[ITerm]]]](3)
 
@@ -164,11 +164,21 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       res
     }
   }
+
+  def decodeTransID(a : Atom) : Transducer = a(1) match {
+    case LinearCombination.Constant(id) =>
+      val trans = theory.autDatabase.id2Trans(id.intValueSafe)
+      trans
+  }
+
   def translateFunction(a : Atom) : Option[(() => PreOp, Seq[Term], Term)] = a.pred match {
     case FunPred(`seq_++`) =>
       Some((() => ConcatPreOp, List(a(0),a(1)),a(2)))
+    case FunPred(`seq_in_relation_id`) =>
+      Some((() => TransducerPreOp(decodeTransID(a)), List(a(0)), a(2)))
+
     case FunPred(`seq_reverse`) =>
-      Some((() => ReversePreOp, List(a(0),a(1)),a(2)))
+      Some((() => ReversePreOp, List(a(0)),a(1)))
     case _ => None//throw new Exception("Function not handled: " + a)
   }
 

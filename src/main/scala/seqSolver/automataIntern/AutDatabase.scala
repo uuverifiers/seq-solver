@@ -41,6 +41,19 @@ class AutDatabase(theory : SeqTheory) {
   private val id2AutMap   = new MHashMap[Int, Automaton]
   private val id2RegexMap = new MHashMap[Int, ParametricRegex]
   private val regex2IdMap = new MHashMap[ParametricRegex, Int]
+  private val id2TransMap = new MHashMap[Int, Transducer]
+
+
+  def id2Trans(id : Int) : Transducer = synchronized {
+    id2TransMap(id)
+  }
+
+  def registerTrans(trans : Transducer) : Int = synchronized {
+    val id = nextId
+    nextId = nextId + 1
+    id2TransMap.put(id, trans)
+    id
+  }
 
   def id2Aut(id : Int) : Automaton = synchronized {
     id2AutMap.getOrElseUpdate(id, regex2Aut(id2RegexMap(id)))

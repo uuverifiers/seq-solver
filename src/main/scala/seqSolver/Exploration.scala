@@ -186,6 +186,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       for (ind <- term2Index get arg)
         coveredTerms += ind
 
+    println("additional constraints " + additionalConstraints)
     initialConstraints ++ additionalConstraints
 
   }
@@ -226,14 +227,21 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
   private def dfExplore(apps : List[(PreOp, Seq[Term], Term)]) : ConflictSet = apps match {
 
+
     case List() => {
+      import ap.parser.IExpression._
       println("Trying to contruct model")
       val model = new MHashMap[Term, Seq[ITerm]]
 
       val input = new ArrayBuffer[Automaton]
       for (t <- leafTerms){
         val store = constraintStores(t)
-        input += SFAUtilities.intersection(store.getContents)
+        // TODO store contents can be empty?
+        println("stores "+t + store.getContents)
+        val _tmpIntersection = SFAUtilities.intersection(store.getContents)
+        if (_tmpIntersection.nonEmpty){
+          input += _tmpIntersection.get
+        }
       }
       // TODO vereinfache disjunktion zu konjunktion
       val _tmp2 = new MHashMap[Automaton, MHashMap[Integer, MHashSet[Seq[Conjunction]]]]()
@@ -243,39 +251,42 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       prover addConstantsRaw seqTheory.parameterTheory.parameters
       prover addConstantsRaw seqTheory.parameterTheory.charSymbols
 
-      println("debugging parametercheck : " + input.toList + " all terms " + allTerms)
       val result = parameterCheck(input.toList, prover, _tmp2)
-      println("test")
-      println(" result : " + result)
-      println("words : " + words)
+
+
       // TODO put parameters in model
       if (result.isEmpty){
         // extract model
         for ((t, word) <- leafTerms zip words) {
-          /*
-          assign variables to letters
-          für jeden automaten eine liste von symbolen die edn pfad repräsentieren
-          eine weitere variable für länge des pfades?
-
-           */
+          println("leaft " + t + " gets value " + word)
           model.put(t, (for (l <- word) yield evalTerm(l)(parameterProver).get).toList)
 
         }
         for (p <- seqTheory.parameterTheory.parameters){
+          println("par " + p + " gets value " + Seq(evalTerm(p)(parameterProver).get))
+          prover.addAssertion(p === evalTerm(p)(parameterProver).get)
           model.put(p, Seq(evalTerm(p)(parameterProver).get))
         }
         val allFunApps : Iterator[(PreOp, Seq[Term], Term)] =
           (for ((ops, res) <- sortedFunApps.reverseIterator;
                 (op, args) <- ops.iterator)
           yield (op, args, res)) ++ ignoredApps.iterator
+
+
+
+
         for ((op, args, res) <- allFunApps;
              argValues = args map model) {
+          println("arg va " + argValues + " op " + op + " args " + args + " res " + res)
 
           //
-          val resSeq = op.eval(argValues) match {
+          val resSeq = op.eval(argValues, prover) match {
             case Some(v) => v
-            case None => throw new Exception(
-              "model extraction failed: " + op + "is not defined for " + argValues)
+            case None => {
+              println("about to throw exceptiob on " + op + " " + argValues)
+              throw new Exception(
+                "model extraction failed: " + op + "is not defined for " + argValues)
+            }
           }
 
           Console.err.println("Derived model value: " + res + " <- " + resSeq)
@@ -322,8 +333,10 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
       val newConstraintsIt = op(resAut, seqTheory)
 
+      println("applying operator ", newConstraintsIt)
       while (newConstraintsIt.hasNext){
         val argCS = newConstraintsIt.next()
+        println("args " + args)
         for (a <- args)
           constraintStores(a).push
         try {
@@ -333,7 +346,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
           for ((a, aut) <- args zip argCS)
             if (consistent) {
               newConstraints += TermConstraint(a, aut)
-              // TODO assert constraint also adds parameter formula
               constraintStores(a).assertConstraint(aut) match {
                 case Some(conflict) => {
                   consistent = false
@@ -407,7 +419,9 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
     allAutomata match {
       case aut1 :: otherauts => {
+
         val aut = aut1.asInstanceOf[ParametricAutomaton]
+        println("aut " + aut)
         val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
         val s = mutable.Stack[Int]()
@@ -416,22 +430,17 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         constraints.put(aut.initialState, _tmpset)
         s.push(aut.initialState)
         while (s.nonEmpty){
-          println("entering dfs 419")
           val current_state = s.pop()
           if (aut.acceptingStates.contains(current_state)){
-            println("enter accepting states 414")
             // get the set of constraints associated to the state
             constraints.get(current_state) match {
               case None => {
-                println("constraints cannot be found 418")
                 throw new Exception("Final state with no constraints? Return True?")
               }
               case Some(constraint_bags) => {
 
-                println("Some constraints can be found" + constraint_bags)
                 for (conjunction <- constraint_bags){
 
-                  println(" Parameterprover PUSH")
                   parameterProver.push
                   var counter = 0
                   val tmp_conjunction = new ArrayBuffer[Conjunction]
@@ -454,17 +463,13 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, parameterProver.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(current_state)
-                  println("Checking parameterprover status 447" + tmp_conjunction + parameterProver.???)
                   if (parameterProver.??? == ProverStatus.Sat){
                     words += tmp_word
+                    println(words)
                     // the next check might come to the conclusion that this path cannot be part of the solution
                     // TODO none = sat; otherwise return conflicts
-                    println("enter check Parameters 438")
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
-                      println("enter check Parameters 452 + " + allAutomata.size)
-                      println("words + " + words)
-                      println("prover " + prover.???)
                       return None
                     }
                     else{
@@ -476,31 +481,25 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
                     // Nothing, keep searching, i.e. go to the next state in the stack
                   }
-                  println(" Parameterprover POP")
                   parameterProver.pop
                 }
-                println("enter check Parameters 461")
               }
             }
           }
           else{
-            println("Not final state 488")
             // for all successors do
             val all_transitions = aut.getAllSuccessors(current_state)
             // TODO Handle epsilon?
             for (successor <- all_transitions){
-              println("enter search with successor " + successor)
               val _tmpset = constraints(current_state)
               val successor_conj = constraints.getOrElse(successor.to, new MHashSet[Seq[Conjunction]]())
               // TODO bug with successor conj where tmp set is not removed
               // get the current possible conjs
               constraints.get(current_state) match {
                 case None => {
-                  println("No constraints found 499")
                   throw new Exception("Final state with no constraints? Return True?")
                 }
                 case Some(constraint_bags) => {
-                  println("constraint bags " + constraint_bags)
                   var successor_new_bag = new MHashSet[Seq[Conjunction]]()
                   for (conjunction <- constraint_bags){
                     var new_conj = conjunction
@@ -512,7 +511,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     }
 
                     var subset = false
-                    println("successor conj " + successor_conj)
                     for (successor_con <- successor_conj){
                       if (new_conj.toSet.subsetOf(successor_con.toSet)){
                         println(successor_con, new_conj)
@@ -522,7 +520,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     }
 
                     if (subset) {
-                      println("Subset is true")
                       successor_new_bag = constraint_bags
                       // do nothing
                     }
@@ -538,7 +535,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                         val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, prover.order)(conj)
                         tmp_conjunction += (z)
                       }
-                      println("Add assertion prover 526")
                       prover.scope{
                         prover.addAssertion(Conjunction.conj(tmp_conjunction, prover.order))
                         // TODO maybe faster without this check?
@@ -551,10 +547,8 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                         }
                         else{
                           println(new_conj)
-                          println("Path not sat 520")
                           // collect conflicts?
                         }
-                        println("Pop prover 539")
                       }
                     }
                   }
@@ -566,16 +560,13 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         }
         // after stack is empty, the entire bag constraints have been computed
         for (final_state <- aut.acceptingStates){
-          println("enter check Parameters 531")
           if (path_set.contains(final_state)){
-            println("enter check Parameters 533")
             // do nothing because this has already been checked
           }
           else{
             constraints.get(final_state) match {
               case None => {
-                println("Throw exception 541")
-                throw new Exception("Final state with no constraints? Return True?")
+                return Some(List())
               }
               case Some(constraint_bags) => {
                 for (conjunction <- constraint_bags){
@@ -600,7 +591,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     words += tmp_word
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
-                      println("enter check Parameters 539")
                       return None
                     }
                     else{
@@ -616,11 +606,9 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
             }
           }
         }
-        println("enter check Parameters 586")
         return Some(List())
       }
       case List() => {
-        println("enter check Parameters 590")
         return None
       }
     }
@@ -746,7 +734,7 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
      */
     override def getCompleteContents: List[Automaton] = constraints.toList
 
-    private def intersection : Automaton = SFAUtilities.intersection(constraints)
+    private def intersection : Option[Automaton] = SFAUtilities.intersection(constraints)
 
     /**
      * Make sure that the exact length abstraction for the intersection of the

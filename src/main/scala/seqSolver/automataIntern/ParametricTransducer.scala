@@ -1,14 +1,19 @@
 package seqSolver.automataIntern
 
-import ap.parser.ITerm
+import ap.SimpleAPI
+import ap.api.SimpleAPI.ProverStatus
+import ap.parser.{ConstantSubstVisitor, ITerm}
 import ap.terfor.ConstantTerm
 import ap.terfor.conjunctions.Conjunction
+import ap.terfor.substitutions.ConstantSubst
 import seqSolver.{ParameterTheory, automataIntern}
+
 import java.util
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import transducers.sft.SFT
+
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 
 object ParametricTransducer {
@@ -29,14 +34,68 @@ class ParametricTransducer(val underlying : SFT[Conjunction, ITerm, ITerm], pt :
     new automataIntern.ParametricAutomaton(underlying.inverseImage(ParametricAutomaton.toSFA(aut), pt), pt)
   }
 
-  def apply(input : Seq[ITerm]): Option[Seq[ITerm]] = {
-    val l = underlying.outputOn(input.asJava, pt).asScala
-    // TODO l can be Null
-    if (l.isEmpty){
-      None
+  override def postImage: Automaton = {
+    new ParametricAutomaton(underlying.getOutputSFA(pt),pt)
+  }
+
+  def apply(input : Seq[ITerm], prover : SimpleAPI): Option[Seq[ITerm]] = {
+    val l = getOutput(input, prover)
+    l
+  }
+
+  def getOutput(input : Seq[ITerm], prover : SimpleAPI) : Option[Seq[ITerm]] = {
+    if(underlying.isEpsilonFree){
+      return getOutputRec(input, prover, underlying.getInitialState)
     }
-    else
-      Some(l)
+    else{
+      throw new Exception("Transducer is not epsilon free")
+    }
+  }
+
+  def getOutputRec(input : Seq[ITerm], prover: ap.SimpleAPI, currentState : Int) : Option[Seq[ITerm]] = {
+    import ap.parser.IExpression._
+    println("test1")
+    if (input.isEmpty){
+      if (underlying.isFinalState(currentState)){
+        return Some(Seq())
+      }
+      else{
+        return None
+      }
+    }
+    else {
+      val currentLetter = input.head
+      val allSuccessors = underlying.getInputMovesFrom(currentState)
+      for (successor <- allSuccessors.asScala){
+        prover.scope{
+          val new_const = pt.charSort newConstant ("l")
+          prover.addConstant(new_const)
+          val z = ConstantSubst(pt.charSymbol, new_const, prover.order)(successor.guard)
+          prover.addAssertion(z)
+          prover.addAssertion(new_const === currentLetter)
+          if (prover.??? == ProverStatus.Sat) {
+            val _tmp = getOutputRec(input.tail, prover, successor.to)
+            if (_tmp.nonEmpty){
+              if (successor.outputFunctions.isEmpty){
+                return Some(_tmp.get)
+              }
+              else{
+                val l = new MHashMap[ConstantTerm, ITerm]
+                l.put(pt.charSymbol, new_const)
+                val t = ConstantSubstVisitor(successor.outputFunctions.get(0), l)
+                return Some(Seq(prover.evalToTerm(t)) ++ _tmp.get)
+
+              }
+            }
+            else{
+              // do nothing
+            }
+
+          }
+        }
+      }
+      return None
+    }
   }
 
 }

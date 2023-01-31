@@ -1,5 +1,6 @@
 package seqSolver.preop
 
+import ap.SimpleAPI
 import ap.parser.ITerm
 import seqSolver.SeqTheory
 import seqSolver.automataIntern.{Automaton, ParametricAutomaton, ParametricAutomatonBuilder, ParametricTransducerBuilder, Transducer}
@@ -116,5 +117,5 @@ object ReplacePreOpRegEx {
 class ReplacePreOpTran(t : Transducer) extends PreOp {
   override def apply(resultConstraint: Automaton, seqTheory: SeqTheory): Iterator[Seq[Automaton]] = ???
 
-  override def eval(arguments: Seq[Seq[ITerm]]): Option[Seq[ITerm]] = ???
+  override def eval(arguments: Seq[Seq[ITerm]], prover : SimpleAPI): Option[Seq[ITerm]] = ???
 }

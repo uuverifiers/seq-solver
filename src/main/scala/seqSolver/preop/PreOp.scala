@@ -1,5 +1,6 @@
 package seqSolver.preop
 
+import ap.api.SimpleAPI
 import ap.parser.ITerm
 import ap.terfor.ConstantTerm
 import ap.terfor.conjunctions.Conjunction
@@ -11,6 +12,6 @@ trait PreOp {
 
   def apply(resultConstraint: Automaton, seqTheory : SeqTheory) : Iterator[Seq[Automaton]]
 
-  def eval(arguments : Seq[Seq[ITerm]]) : Option[Seq[ITerm]]
+  def eval(arguments : Seq[Seq[ITerm]], prover : SimpleAPI) : Option[Seq[ITerm]]
 
 }

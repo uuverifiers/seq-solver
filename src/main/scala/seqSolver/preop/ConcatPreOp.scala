@@ -1,5 +1,6 @@
 package seqSolver.preop
 
+import ap.SimpleAPI
 import ap.parser.ITerm
 import ap.terfor.ConstantTerm
 import ap.terfor.TerForConvenience.l
@@ -27,7 +28,7 @@ object ConcatPreOp extends PreOp {
     }
   }
 
-  def eval(arguments : Seq[Seq[ITerm]]) : Option[Seq[ITerm]] = {
+  def eval(arguments : Seq[Seq[ITerm]], prover : SimpleAPI) : Option[Seq[ITerm]] = {
     Some(arguments.head ++ arguments(1))
   }
 

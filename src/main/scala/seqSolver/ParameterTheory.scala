@@ -97,6 +97,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
 
   def AreEquivalent(x: Conjunction, y: Conjunction): Boolean = prover.scope {
     // TODO: this won't work properly if x, y contain function symbols
+    println("oh no")
     prover addConclusion (x <=> y)
     prover.??? == ProverStatus.Valid
   }

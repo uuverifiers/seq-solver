@@ -27,17 +27,17 @@ object SFAUtilities {
   def apply(): SFAUtilities = {
     new SFAUtilities
   }
-  def intersection(product : Seq[Automaton]) : Automaton = product match {
+  def intersection(product : Seq[Automaton]) : Option[Automaton] = product match {
 
     case aut :: otherAuts => {
       var _tmp = aut
       for (oA <- otherAuts) {
         _tmp = _tmp & oA
       }
-      _tmp
+      Some(_tmp)
     }
     case List() => {
-      throw new Exception("Called intersection on empty set")
+      None
     }
   }
 

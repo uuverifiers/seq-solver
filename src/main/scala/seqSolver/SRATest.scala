@@ -1,33 +1,21 @@
-
-
 package seqSolver
 
-import ap.Prover.Model
-import ap.parser._
 import ap.SimpleAPI
+import ap.parser.IExpression
 import ap.terfor.conjunctions.Conjunction
-import seqSolver.automataIntern._
-import automata.sfa.SFA
-import automata.sfa.SFAEpsilon
-import automata.sfa.SFAInputMove
-import automata.sfa.SFAMove
-import seqSolver.SolverTest.seqTheory
-import seqSolver.automataIntern.ParametricAutomaton.reverseAut
-import transducers.sft.{SFT, SFTInputMove, SFTMove}
-
+import automata.sfa.{SFA, SFAInputMove}
+import seqSolver.automataIntern.ParametricAutomaton
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-import scala.language.postfixOps
-
 object SRATest extends App {
 
   import IExpression._
 
   val seqTheory = new SeqTheory(Sort.Integer,
-    List(("p0", Sort.Integer), ("p1", Sort.Integer),("p2", Sort.Integer),("p3", Sort.Integer),("p4", Sort.Integer),("p5", Sort.Integer),("p6", Sort.Integer),("p7", Sort.Integer),("p8", Sort.Integer),("p9", Sort.Integer)))
+    List(("p0", Sort.Integer), ("p1", Sort.Integer), ("p2", Sort.Integer), ("p3", Sort.Integer), ("p4", Sort.Integer), ("p5", Sort.Integer), ("p6", Sort.Integer), ("p7", Sort.Integer), ("p8", Sort.Integer), ("p9", Sort.Integer)))
 
   val pt = seqTheory.parameterTheory
-  val Seq(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9)  = seqTheory.parameterTheoryPars
+  val Seq(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) = seqTheory.parameterTheoryPars
   val Seq(c, c1) = seqTheory.parameterTheoryChars
   val num = pt.FromFormula(i(48) <= c & c <= i(57))
   val dot = pt.FromFormula(i(46) === ConstantTerm2ITerm(c))
@@ -47,9 +35,9 @@ object SRATest extends App {
   val not_space = pt.MkNot(space)
 
 
-  def getIP2PacketParser() : ParametricAutomaton = {
+  def getIP2PacketParser(): ParametricAutomaton = {
     val autGetIP2PacketParser = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, small_s),
         new SFAInputMove(1, 2, colon),
@@ -106,7 +94,7 @@ object SRATest extends App {
 
   def getIP3PacketParser: ParametricAutomaton = {
     val autGetIP3PacketParser = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, small_s),
         new SFAInputMove(1, 2, colon),
@@ -163,7 +151,7 @@ object SRATest extends App {
 
   def getIP4PacketParser: ParametricAutomaton = {
     val autGetIP4PacketParser = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, small_s),
         new SFAInputMove(1, 2, colon),
@@ -221,7 +209,7 @@ object SRATest extends App {
 
   def getIP6PacketParser: ParametricAutomaton = {
     val autGetIP6PacketParser = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, small_s),
         new SFAInputMove(1, 2, colon),
@@ -278,7 +266,7 @@ object SRATest extends App {
 
   def getIP9PacketParser: ParametricAutomaton = {
     val autGetIP9PacketParser = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, small_s),
         new SFAInputMove(1, 2, colon),
@@ -333,9 +321,9 @@ object SRATest extends App {
     autGetIP9PacketParser
   }
 
-  def getProductParserC2 : ParametricAutomaton = {
+  def getProductParserC2: ParametricAutomaton = {
     val prC2 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -369,16 +357,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(25)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prC2
   }
 
-  def getProductParserCL2 : ParametricAutomaton = {
+  def getProductParserCL2: ParametricAutomaton = {
     val prCL2 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -412,16 +399,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(25)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prCL2
   }
 
-  def getProductParserC3 : ParametricAutomaton = {
+  def getProductParserC3: ParametricAutomaton = {
     val prC3 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -447,15 +433,14 @@ object SRATest extends App {
         new SFAInputMove(20, 21, big_L),
         new SFAInputMove(21, 22, colon),
         new SFAInputMove(22, 23, alpha_num),
-      new SFAInputMove(23, 24, space),
-      new SFAInputMove(24, 25, big_D),
-      new SFAInputMove(25, 26, colon),
-      new SFAInputMove(26, 27, alpha),
-      new SFAInputMove(27, 27, alpha),
-      new SFAInputMove(27, 14, space)
+        new SFAInputMove(23, 24, space),
+        new SFAInputMove(24, 25, big_D),
+        new SFAInputMove(25, 26, colon),
+        new SFAInputMove(26, 27, alpha),
+        new SFAInputMove(27, 27, alpha),
+        new SFAInputMove(27, 14, space)
 
       )
-
 
 
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(27)).asJava, pt)
@@ -464,9 +449,9 @@ object SRATest extends App {
     prC3
   }
 
-  def getProductParserCL3 : ParametricAutomaton = {
+  def getProductParserCL3: ParametricAutomaton = {
     val prCL3 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -502,16 +487,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(27)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prCL3
   }
 
-  def getProductParserC4 : ParametricAutomaton = {
+  def getProductParserC4: ParametricAutomaton = {
     val prC4 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -549,16 +533,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(29)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prC4
   }
 
-  def getProductParserCL4 : ParametricAutomaton = {
+  def getProductParserCL4: ParametricAutomaton = {
     val prCL4 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -596,16 +579,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(29)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prCL4
   }
 
-  def getProductParserC6 : ParametricAutomaton = {
+  def getProductParserC6: ParametricAutomaton = {
     val prC6 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -647,16 +629,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(33)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prC6
   }
 
-  def getProductParserCL6 : ParametricAutomaton = {
+  def getProductParserCL6: ParametricAutomaton = {
     val prCL6 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -698,16 +679,15 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(33)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
     prCL6
   }
 
-  def getProductParserCL9 : ParametricAutomaton = {
+  def getProductParserCL9: ParametricAutomaton = {
     val prC9 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -763,9 +743,9 @@ object SRATest extends App {
     prC9
   }
 
-  def getProductParserC9 : ParametricAutomaton = {
+  def getProductParserC9: ParametricAutomaton = {
     val prCL9 = {
-      val transitions : Seq[pt.SFAMove] = List(
+      val transitions: Seq[pt.SFAMove] = List(
 
         new SFAInputMove(0, 1, big_C),
         new SFAInputMove(1, 2, colon),
@@ -813,7 +793,6 @@ object SRATest extends App {
       )
 
 
-
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(39)).asJava, pt)
       new ParametricAutomaton(aut, pt)
     }
@@ -822,7 +801,7 @@ object SRATest extends App {
 
   val aut1 = getProductParserC2
   println("ip6 packet parser : \n" + aut1)
-  val aut2 = getProductParserCL2
+  val aut2 = getProductParserC2
   println("aut 2 packet parser : \n" + aut2)
   val test2 = !aut2
   println("test complement: " + test2)
@@ -837,19 +816,18 @@ object SRATest extends App {
   val autId2 = seqTheory.autDatabase.registerAut(test2)
 
 
-
-
   SimpleAPI.withProver(enableAssert = true) { p =>
     import p._
 
     addTheory(seqTheory)
 
-    import seqTheory.{SeqSort, seq_in_re_id, seq_++, seq_empty, seq_reverse}
+    import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
 
     var s1 = createConstant("s1", SeqSort)
     // membership in parameterised automaton
-    !! (seq_in_re_id(s1, autId1))
-    !! (seq_in_re_id(s1, autId2))
+    !!(seq_in_re_id(seq_reverse(s1), autId1))
+    //!! (seq_in_re_id(s1, autId1))
+    // !! (seq_in_re_id(s1, autId2))
     //!! (seq_in_re_id(s1, autP3Id))
     // val l = (seq_++(s2,s3))
     //!! (l === s1)

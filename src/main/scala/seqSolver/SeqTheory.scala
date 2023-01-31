@@ -15,8 +15,7 @@ import ap.terfor.{ConstantTerm, Term}
 import ap.proof.goal.Goal
 
 import scala.collection.{Map => GMap}
-import scala.collection.mutable.{HashMap => MHashMap, Map => MMap,
-                                 Set => MSet, ArrayBuffer}
+import scala.collection.mutable.{ArrayBuffer, HashMap => MHashMap, Map => MMap, Set => MSet}
 
 object SeqTheory {
 
@@ -24,7 +23,8 @@ object SeqTheory {
 
 
 class SeqTheory(elementSort : Sort,
-                parameters  : Seq[(String, Sort)]) extends MSeqTheory {
+                parameters  : Seq[(String, Sort)],
+                additionalTheories : Seq[Theory] = List()) extends MSeqTheory {
 
   val ElementSort = elementSort
 
@@ -117,6 +117,8 @@ class SeqTheory(elementSort : Sort,
 
   val seq_in_re_id =
     new MonoSortedPredicate(prefix + "in_re_id", List(SeqSort, Sort.Integer))
+  val seq_in_relation_id =
+    new MonoSortedIFunction(prefix + "in_relation_id", List(SeqSort, Sort.Integer), SeqSort, true, false)
 
   val parameterFuns =
     (for ((name, sort) <- parameters)
@@ -136,7 +138,7 @@ class SeqTheory(elementSort : Sort,
   val functions =
     List(seq_empty, seq_cons, seq_unit, seq_++,
          seq_len, seq_extract, seq_indexof, seq_at, seq_nth,
-         seq_update, seq_replace, charParameterFun) ++ parameterFuns
+         seq_update, seq_replace, charParameterFun, seq_reverse,  seq_in_relation_id) ++ parameterFuns
 
   val additionalPredicates =
     List(seq_in_re_id, seq_contains, seq_prefixof, seq_suffixof, seqConstant)
@@ -154,10 +156,11 @@ class SeqTheory(elementSort : Sort,
   lazy val parameterTheory = {
     parameterTheoryInstantiated = true
     val pars = baseParameterTheoryPars ++ charParameters
-    new ParameterTheory(parameterTheoryChars, pars, List())
+    new ParameterTheory(parameterTheoryChars, pars, additionalTheories)
   }
 
   val autDatabase = new AutDatabase(this)
+
 
   /**
    * Allocate a new parameter used to translate expressions to
