@@ -1,23 +1,17 @@
-package seqSolver
+package seqSolver.test
 
-import ap.parser.IExpression._
-import ap.SimpleAPI
-import ap.terfor.conjunctions.Conjunction
-import automata.sfa.SFA
-import automata.sfa.SFAInputMove
-import transducers.sft.{SFT, SFTInputMove, SFTMove}
-
-import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
-import scala.collection.JavaConverters._
-import scala.language.postfixOps
 import ap.SimpleAPI
 import ap.parser.IExpression.{ConstantTerm2ITerm, Sort, eqZero, i}
 import ap.parser.{IFormula, ITerm}
 import ap.terfor.conjunctions.Conjunction
 import ap.theories.ADT
 import automata.sfa.{SFA, SFAInputMove}
+import seqSolver.SeqTheory
 import seqSolver.automataIntern.{ParametricAutomaton, ParametricTransducer}
 import transducers.sft.{SFT, SFTEpsilon, SFTInputMove}
+import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
+import scala.collection.JavaConverters._
+import ap.parser.IExpression._
 
 object BakeryTest extends App {
 

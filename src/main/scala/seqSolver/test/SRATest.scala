@@ -1,9 +1,10 @@
-package seqSolver
+package seqSolver.test
 
 import ap.SimpleAPI
 import ap.parser.IExpression
 import ap.terfor.conjunctions.Conjunction
 import automata.sfa.{SFA, SFAInputMove}
+import seqSolver.SeqTheory
 import seqSolver.automataIntern.ParametricAutomaton
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._

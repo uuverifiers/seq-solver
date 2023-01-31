@@ -1,5 +1,6 @@
-package seqSolver
+package seqSolver.test
 
+import seqSolver.SeqTheory
 import ap.SimpleAPI
 import ap.parser.IExpression.{ConstantTerm2ITerm, Int2ITerm, Sort, i}
 import ap.parser.{IExpression, ITerm}
@@ -10,7 +11,7 @@ import transducers.sft.{SFT, SFTInputMove}
 
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-object Dijkstra extends App {
+object DijkstraTest extends App {
 
   import IExpression._
   val seqTheory = new SeqTheory(Sort.Integer,

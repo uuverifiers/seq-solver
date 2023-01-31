@@ -1,18 +1,18 @@
-package seqSolver
+package seqSolver.test
 
 import ap.SimpleAPI
 import ap.parser.{IExpression, ITerm}
 import ap.terfor.conjunctions.Conjunction
 import automata.sfa.{SFA, SFAInputMove}
+import seqSolver.SeqTheory
 import seqSolver.automataIntern.{ParametricAutomaton, ParametricTransducer}
 import transducers.sft.{SFT, SFTInputMove}
-
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-
 object QuickSort extends App {
 
   import IExpression._
+
   val seqTheory = new SeqTheory(Sort.Integer,
     List(("p", Sort.Integer)))
   val pt = seqTheory.parameterTheory
