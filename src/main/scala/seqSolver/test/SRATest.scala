@@ -1,11 +1,13 @@
 package seqSolver.test
 
 import ap.SimpleAPI
+import ap.api.SimpleAPI.ProverStatus
 import ap.parser.IExpression
 import ap.terfor.conjunctions.Conjunction
 import automata.sfa.{SFA, SFAInputMove}
 import seqSolver.SeqTheory
 import seqSolver.automataIntern.ParametricAutomaton
+
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
 object SRATest extends App {
@@ -800,42 +802,750 @@ object SRATest extends App {
     prCL9
   }
 
-  val aut1 = getProductParserC2
-  println("ip6 packet parser : \n" + aut1)
-  val aut2 = getProductParserC2
-  println("aut 2 packet parser : \n" + aut2)
-  val test2 = !aut2
-  println("test complement: " + test2)
+  def test_PR_C2_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC2)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
 
-  //val test = reverseAut(aut2)
-  //println("test reverse " + test)
+      addTheory(seqTheory)
 
-  val test3 = test2 & aut1
-  println("test 3 " + test3)
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
 
-  val autId1 = seqTheory.autDatabase.registerAut(aut1)
-  val autId2 = seqTheory.autDatabase.registerAut(test2)
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
 
+      ??? == ProverStatus.Sat
+    }
 
-  SimpleAPI.withProver(enableAssert = true) { p =>
-    import p._
+  }
 
-    addTheory(seqTheory)
+  def test_PR_CL2_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL2)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
 
-    import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+      addTheory(seqTheory)
 
-    var s1 = createConstant("s1", SeqSort)
-    // membership in parameterised automaton
-    !!(seq_in_re_id(seq_reverse(s1), autId1))
-    //!! (seq_in_re_id(s1, autId1))
-    // !! (seq_in_re_id(s1, autId2))
-    //!! (seq_in_re_id(s1, autP3Id))
-    // val l = (seq_++(s2,s3))
-    //!! (l === s1)
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
 
-    // global constraint on the parameters
-    //!! (seqTheory.parameterTerms(0) >= 0)
-    println(" res " + ???)
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_C3_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC3)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL3_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL3)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_C4_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC4)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL4_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL4)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_C6_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC6)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL6_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL6)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_C9_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC9)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL9_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL9)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_IP_2_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getIP2PacketParser())
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_IP_3_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_IP_6_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ???  == ProverStatus.Sat
+    }
+
+  }
+
+  def test_IP_9_Emptiness(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ???  == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL2_C2_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC2)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL2)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL3_C3_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC3)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL3)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL4_C4_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC4)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL4)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL6_C6_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC6)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL6)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL9_C9_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC9)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL9)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_IP3_IP2_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP2PacketParser())
+    val autId2 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+  def test_PR_IP4_IP3_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP3PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP4PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_IP6_IP4_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP4PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_IP9_IP6_Inclusion(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP6PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_C2_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC2)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserC2)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_C3_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC3)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserC3)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_C4_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC4)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserC4)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_C6_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC6)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserC6)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_C9_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC9)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserC9)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL2_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL2)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL2)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL3_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL3)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL3)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL4_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL4)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL4)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL6_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL6)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL6)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_CL9_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL9)
+    val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL9)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_Ip2_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP2PacketParser())
+    val autId2 = seqTheory.autDatabase.registerAut(getIP2PacketParser())
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_Ip3_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP3PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_Ip4_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP4PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP4PacketParser)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_Ip6_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP6PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
+  }
+
+  def test_PR_Ip9_Equiv(): Unit = {
+    val autId1 = seqTheory.autDatabase.registerAut(!getIP9PacketParser)
+    val autId2 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
+
+    SimpleAPI.withProver(enableAssert = true) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Unsat
+    }
+
   }
 
 }
