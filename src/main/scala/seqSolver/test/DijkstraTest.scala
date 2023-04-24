@@ -101,9 +101,6 @@ object DijkstraTest{
 
       addTheory(seqTheory)
       import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
-
-      println(t)
-
       val s1 = createConstant("s1", SeqSort)
       val s2 = createConstant("s2", SeqSort)
       !! (seqTheory.parameterTerms(6) === 1)
