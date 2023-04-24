@@ -203,7 +203,6 @@ class ParametricAutomaton(val underlying : SFA[Conjunction,ITerm], pt : Paramete
   }
 
   def isEmpty : Boolean = {
-    println("PAut is empty" + underlying.isEmpty)
     underlying.isEmpty
   }
 
@@ -257,8 +256,6 @@ class ParametricAutomatonBuilder(val parameterTheory: ParameterTheory) {
   }
 
   def getAutomaton : ParametricAutomaton = {
-    println("accepting states" + acceptingStates)
-    println("transitions " + transitions)
     new ParametricAutomaton(SFA.MkSFA(transitions.asJava, init, acceptingStates.asJava, parameterTheory), parameterTheory)
   }
 

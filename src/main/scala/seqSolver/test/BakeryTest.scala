@@ -1,6 +1,7 @@
 package seqSolver.test
 
 import ap.SimpleAPI
+import ap.api.SimpleAPI.ProverStatus
 import ap.parser.IExpression.{ConstantTerm2ITerm, Sort, eqZero, i}
 import ap.parser.{IFormula, ITerm}
 import ap.terfor.conjunctions.Conjunction
@@ -9,11 +10,14 @@ import automata.sfa.{SFA, SFAInputMove}
 import seqSolver.SeqTheory
 import seqSolver.automataIntern.{ParametricAutomaton, ParametricTransducer}
 import transducers.sft.{SFT, SFTEpsilon, SFTInputMove}
+
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
 import ap.parser.IExpression._
 
-object BakeryTest extends App {
+
+
+object BakeryTest{
 
 
   val (stateSort, Seq(enteringTrue, choosingNumber, enteringFalse, checkingEntering, inSection)) =
@@ -41,7 +45,6 @@ object BakeryTest extends App {
   val l: ITerm = process(enteringTrue, 1, 0)
 
 
-  println("init")
   val initialAut = {
 
     val transitions: Seq[pt.SFAMove] = List(
@@ -53,7 +56,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("trabs")
   val transitionsTransducer = {
 
     val enteringTrueGuard = pt.FromFormula(state(c) === enteringTrue)
@@ -107,7 +109,6 @@ object BakeryTest extends App {
     new ParametricTransducer(trans, pt)
   }
 
-  println("inv0")
   val inv0 = {
 
     val transitions: Seq[pt.SFAMove] = List(
@@ -119,7 +120,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("neginv0")
   val negInv0 = {
 
     val transitions: Seq[pt.SFAMove] = List(
@@ -133,7 +133,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("inv1")
   val inv1 = {
 
 
@@ -146,7 +145,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("neginv1")
   val negInv1 = {
 
 
@@ -166,7 +164,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("neginv2")
   val negInv2 = {
     val transitions: Seq[pt.SFAMove] = List(
       new SFAInputMove(0, 0, Conjunction.TRUE),
@@ -177,7 +174,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("inv2")
   val inv2 = {
     val transitions: Seq[pt.SFAMove] = List(
       new SFAInputMove(0, 0, pt.FromFormula(state(c) === checkingEntering | state(c) === enteringFalse ==> (number(c) > 0)))
@@ -186,7 +182,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("inv3")
   val inv3 = {
     val transitions: Seq[pt.SFAMove] = List(
       new SFAInputMove(0, 0, pt.FromFormula(state(c) =/= inSection)),
@@ -197,7 +192,6 @@ object BakeryTest extends App {
     new ParametricAutomaton(aut, pt)
 
   }
-  println("neginv3")
   val negInv3 = {
     val transitions: Seq[pt.SFAMove] = List(
       new SFAInputMove(0, 0, Conjunction.TRUE),
@@ -214,34 +208,90 @@ object BakeryTest extends App {
 
   val autInit = seqTheory.autDatabase.registerAut(initialAut)
   val autInv0 = seqTheory.autDatabase.registerAut(inv0)
+  val autInv1 = seqTheory.autDatabase.registerAut(inv1)
   val autNegInv0 = seqTheory.autDatabase.registerAut(negInv0)
+  val autNegInv1 = seqTheory.autDatabase.registerAut(negInv1)
+  val autInv2 = seqTheory.autDatabase.registerAut(inv2)
+  val autInv3 = seqTheory.autDatabase.registerAut(inv3)
+  val autNegInv2 = seqTheory.autDatabase.registerAut(negInv2)
+  val autNegInv3 = seqTheory.autDatabase.registerAut(negInv3)
   val transId = seqTheory.autDatabase.registerTrans(transitionsTransducer)
 
-  SimpleAPI.withProver(enableAssert = true) { p =>
-    import p._
+  def runInv0(enable: Boolean): Boolean ={
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
 
-    addTheory(seqTheory)
+      addTheory(seqTheory)
 
-    import seqTheory.{SeqSort, seq_in_re_id}
+      import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
 
-    var s1 = createConstant("s1", SeqSort)
-    val s2 = createConstant("s2", SeqSort)
-    // membership in parameterised automaton
-    //!! (seq_in_re_id(s1, autP1Id))
-    !!(seq_in_re_id(s1, autInit))
-    // !! (seq_in_re_id(s1, autInv0))
-    //!! (seq_in_re_id(seq_in_relation_id(s1, transId), autNegInv0))
-    //!! (seq_in_re_id(s1, autInv0))
-    //!! (seq_in_re_id(s1, autPost))
-    //!! (seq_in_re_id(s1, autNegInv0))
-    // val l = (seq_++(s2,s3))
-    //!! (l === s1)
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
 
-    // global constraint on the parameters
-    //!! (seqTheory.parameterTerms(0) >= 0)
-
-    println(" res " + ???)
-    println("s1: " + evalToTerm(s1))
-    println("s2: " + evalToTerm(s2))
+      !! (seq_in_re_id(s1, autInit))
+      !! (s2 === seq_in_relation_id(s1, transId))
+      !! (seq_in_re_id(s2, autNegInv0))
+      ??? == ProverStatus.Unsat
+    }
   }
+
+  def runInv1(enable: Boolean): Boolean ={
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
+
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
+
+      !! (seq_in_re_id(s1, autInv0))
+      !! (seq_in_re_id(s1, autInv1))
+      !! (s2 === seq_in_relation_id(s1, transId))
+      !! (seq_in_re_id(s2, autNegInv1))
+      ??? == ProverStatus.Unsat
+    }
+  }
+
+  def runInv2(enable: Boolean): Boolean ={
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
+
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
+
+      !! (seq_in_re_id(s1, autInv1))
+      !! (seq_in_re_id(s1, autInv2))
+      !! (s2 === seq_in_relation_id(s1, transId))
+      !! (seq_in_re_id(s2, autNegInv2))
+      ??? == ProverStatus.Unsat
+    }
+  }
+
+  def runInv3(enable: Boolean): Boolean ={
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
+
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
+
+      !! (seq_in_re_id(s1, autInv2))
+      !! (seq_in_re_id(s1, autInv3))
+      !! (s2 === seq_in_relation_id(s1, transId))
+      !! (seq_in_re_id(s2, autNegInv3))
+      ??? == ProverStatus.Unsat
+    }
+  }
+
+
+
 }

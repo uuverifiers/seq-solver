@@ -42,8 +42,7 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     goalState(goal) match {
       case Plugin.GoalState.Final =>
         if (!Seqs.disjointSeq(goal.facts.predicates, bwdPropHandledPreds)) {
-          println
-          println("have to solve: " + goal.facts)
+         // println("have to solve: " + goal.facts)
           callBackwardProp(goal)
         } else {
           List()
@@ -61,7 +60,6 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
     } match {
       case Some(m) => {
         // handleSolution(goal, m)
-        println("Found solution: " + m)
 
         // mark the symbols in the solution to make sure that nobody
         // else will replace them by values
@@ -112,14 +110,13 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       case lc =>
         throw new Exception("Could not decode regex id " + lc)
     }
-    println("preds" + theory.predicates + "parameter terms " + parameterTerms)
     for (a <- atoms.positiveLits) a.pred match {
       case `seq_in_re_id` => decodeRegexID(a, false)
       case p if (theory.predicates contains p  ) =>
         translateFunction(a) match {
           case Some((op, args, res)) =>
             funApps += ((op(), args, res))
-          case _ => println("ignoring " + p + " for backwards prop")//throw new Exception("Cannot handle literal " +a)
+          case _ => //println("ignoring " + p + " for backwards prop")//throw new Exception("Cannot handle literal " +a)
         }
 
       case _ =>
@@ -159,7 +156,6 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
       val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
       val res = exploration.findModel
 
-      println("Result of exploration: " + res)
 
       res
     }

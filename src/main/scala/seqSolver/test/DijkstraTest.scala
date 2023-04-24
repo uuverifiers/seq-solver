@@ -2,6 +2,7 @@ package seqSolver.test
 
 import seqSolver.SeqTheory
 import ap.SimpleAPI
+import ap.api.SimpleAPI.ProverStatus
 import ap.parser.IExpression.{ConstantTerm2ITerm, Int2ITerm, Sort, i}
 import ap.parser.{IExpression, ITerm}
 import ap.terfor.conjunctions.Conjunction
@@ -11,27 +12,27 @@ import transducers.sft.{SFT, SFTInputMove}
 
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-object DijkstraTest extends App {
+object DijkstraTest{
 
   import IExpression._
   val seqTheory = new SeqTheory(Sort.Integer,
-    List(("p1", Sort.Integer), ("p2", Sort.Integer), ("p3", Sort.Integer), ("p", Sort.Integer), ("k", Sort.Integer)))
+    List(("q1", Sort.Integer), ("q2", Sort.Integer),("p1", Sort.Integer), ("p2", Sort.Integer), ("p3", Sort.Integer), ("p", Sort.Integer), ("k", Sort.Integer)))
   val pt = seqTheory.parameterTheory
   val Seq(c, c1) = seqTheory.parameterTheoryChars
-  val Seq(p1, p2, p3, p, k) = seqTheory.parameterTheoryPars
+  val Seq(q1, q2, p1, p2, p3, p, k) = seqTheory.parameterTheoryPars
 
 
   val l1 = {
 
     val transitions: Seq[pt.SFAMove] = List(
-      new SFAInputMove(0, 1, pt.FromFormula(c === i(p1))),
-      new SFAInputMove(1, 2, pt.FromFormula(i(p1) === c)),
-      new SFAInputMove(2, 2, pt.FromFormula(i(p1) === c)),
+      new SFAInputMove(0, 1, pt.FromFormula(c === i(q1))),
+      new SFAInputMove(1, 2, pt.FromFormula(i(q1) === c)),
+      new SFAInputMove(2, 2, pt.FromFormula(i(q1) === c)),
 
-      new SFAInputMove(3, 3, pt.FromFormula(i(p1) === c)),
-      new SFAInputMove(0, 3, pt.FromFormula(i(p1) === c)),
-      new SFAInputMove(3, 4, pt.FromFormula(i(p2) === c & i(p1) =/= i(p2))),
-      new SFAInputMove(4, 4, pt.FromFormula(i(p2) === c))
+      new SFAInputMove(3, 3, pt.FromFormula(i(q1) === c)),
+      new SFAInputMove(0, 3, pt.FromFormula(i(q1) === c)),
+      new SFAInputMove(3, 4, pt.FromFormula(i(q2) === c & i(q1) =/= i(q2))),
+      new SFAInputMove(4, 4, pt.FromFormula(i(q2) === c))
     )
     val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(2), new Integer(4)).asJava, pt)
     new ParametricAutomaton(aut, pt)
@@ -41,8 +42,8 @@ object DijkstraTest extends App {
 
     val transitions: Seq[pt.SFAMove] = List(
       new SFAInputMove(0, 4, Conjunction.TRUE),
-      new SFAInputMove(0, 1, pt.FromFormula(i(p2) === c)),
-      new SFAInputMove(1, 1, pt.FromFormula(i(p2) === c)),
+      new SFAInputMove(0, 1, pt.FromFormula(i(p1) === c)),
+      new SFAInputMove(1, 1, pt.FromFormula(i(p1) === c)),
 
       new SFAInputMove(1, 2, pt.FromFormula(i(p2) === c & i(p1) =/= i(p2))),
       new SFAInputMove(2, 2, pt.FromFormula(i(p2) === c)),
@@ -85,37 +86,34 @@ object DijkstraTest extends App {
     new ParametricTransducer(trans, pt)
   }
 
+  val zero = Int2ITerm(0)
+
+
+
   val autL1 = seqTheory.autDatabase.registerAut(l1)
   val autL2 = seqTheory.autDatabase.registerAut(l2)
   val transition = seqTheory.autDatabase.registerTrans(t)
 
 
-  SimpleAPI.withProver(enableAssert = true) { p =>
-    import p._
+  def run(enableAssertions : Boolean) : Boolean = {
+    SimpleAPI.withProver(enableAssert = enableAssertions) { p =>
+      import p._
 
-    addTheory(seqTheory)
+      addTheory(seqTheory)
+      import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
 
-    import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
+      println(t)
 
-    var s1 = createConstant("s1", SeqSort)
-    val s2 = createConstant("s2", SeqSort)
-    // membership in parameterised automaton
-    //!! (seq_in_re_id(s1, autP1Id))
-    !!(seq_in_re_id(s1, autL1))
-    !!(s2 === seq_in_relation_id(s1, transition))
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
+      !! (seqTheory.parameterTerms(6) === 1)
+      !!(seq_in_re_id(s1, autL1))
 
-    !!(seq_in_re_id(s2, autL2))
-    //!! (seq_in_re_id(s1, autInv0))
-    //!! (seq_in_re_id(s1, autPost))
-    //!! (seq_in_re_id(s1, autNegInv0))
-    // val l = (seq_++(s2,s3))
-    //!! (l === s1)
-
-    // global constraint on the parameters
-    //!! (seqTheory.parameterTerms(0) >= 0)
-
-    println(" res " + ???)
-    /*    println("s1: " + evalToTerm(s1))
-    println("s2: " + evalToTerm(s2))*/
+      !!(s2 === seq_in_relation_id(s1, transition))
+      !!(seq_in_re_id(s2, autL2))
+      return ??? == ProverStatus.Unsat
+    }
   }
+
+
 }

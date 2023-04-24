@@ -67,7 +67,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
     prover.asConjunction(x === iCharSymbol0)
 
   def FromFormula(f : IFormula) : Conjunction = {
-    prover.asConjunction(f)
+    Conjunction.negate(prover.asConjunction(~f), order)
   }
   def makeExistentialFormula(t : ITerm): Unit = {
     prover.makeExistential(t)

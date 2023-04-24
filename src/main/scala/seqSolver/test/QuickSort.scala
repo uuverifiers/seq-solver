@@ -1,15 +1,20 @@
 package seqSolver.test
 
 import ap.SimpleAPI
+import ap.api.SimpleAPI.ProverStatus
 import ap.parser.{IExpression, ITerm}
 import ap.terfor.conjunctions.Conjunction
 import automata.sfa.{SFA, SFAInputMove}
 import seqSolver.SeqTheory
 import seqSolver.automataIntern.{ParametricAutomaton, ParametricTransducer}
 import transducers.sft.{SFT, SFTInputMove}
+
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-object QuickSort extends App {
+
+
+
+object QuickSort {
 
   import IExpression._
 
@@ -60,6 +65,7 @@ object QuickSort extends App {
     val transitions: Seq[pt.SFTMove] = List(
 
       new SFTInputMove(1, 1, pt.FromFormula(c >= i(p)), List(ConstantTerm2ITerm(c)).asJava),
+      new SFTInputMove(1, 1, pt.FromFormula(c < i(p)), List().asJava),
       new SFTInputMove(0, 0, pt.FromFormula(c < i(p)), List().asJava),
       new SFTInputMove(0, 1, pt.FromFormula(c === i(p)), List().asJava)
     )
@@ -86,47 +92,35 @@ object QuickSort extends App {
   val greaterPId = seqTheory.autDatabase.registerTrans(greaterP)
   val equalPId = seqTheory.autDatabase.registerAut(equalP)
 
-  SimpleAPI.withProver(enableAssert = true) { p =>
-    import p._
+  def run(enableAssertions : Boolean) : Boolean = {
+    SimpleAPI.withProver(enableAssert = enableAssertions) { p =>
+      import p._
 
-    addTheory(seqTheory)
+      addTheory(seqTheory)
 
-    import seqTheory.{SeqSort, seq_++, seq_in_re_id, seq_in_relation_id}
+      import seqTheory.{SeqSort, seq_++, seq_in_re_id, seq_in_relation_id}
 
-    var s1 = createConstant("s1", SeqSort)
-    val s2 = createConstant("s2", SeqSort)
-    val s3 = createConstant("s3", SeqSort)
-    val s4 = createConstant("s4", SeqSort)
-    // membership in parameterised automaton
-    //!! (seq_in_re_id(s1, autP1Id))
-    !!(seq_in_re_id(s1, autInv))
-    !!(seq_in_re_id(s2, equalPId))
+      val s1 = createConstant("s1", SeqSort)
+      val s2 = createConstant("s2", SeqSort)
+      val s3 = createConstant("s3", SeqSort)
+      val s4 = createConstant("s4", SeqSort)
 
-    //!! (seq_in_re_id(s2, seq_in_relation_id(s1,smallerPId)))
-    val l = (seq_++(seq_in_relation_id(s1, smallerPId), s2))
-    // val l = seq_in_re_id(s2,equalPID)
+      !!(seq_in_re_id(s1, autInv))
+      !!(seq_in_re_id(s2, equalPId))
 
-    !!(s3 === l)
+      val l = (seq_++(seq_in_relation_id(s1, smallerPId), s2))
 
-    val l1 = (seq_++(s3, seq_in_relation_id(s1, greaterPId)))
+      !!(s3 === l)
 
-    !!(s4 === l1)
+      val l1 = (seq_++(s3, seq_in_relation_id(s1, greaterPId)))
 
-    !!(seq_in_re_id(l1, autNegInv))
+      !!(s4 === l1)
 
-    //!! (seq_in_re_id(s1, autInv0))
-    //!! (seq_in_re_id(s1, autPost))
-    //!! (seq_in_re_id(s1, autNegInv0))
-    // val l = (seq_++(s2,s3))
-    //!! (l === s1)
+      !!(seq_in_re_id(l1, autNegInv))
+      return ??? == ProverStatus.Unsat
 
-    // global constraint on the parameters
-    //!! (seqTheory.parameterTerms(0) >= 0)
-
-    println(" res " + ???)
-    /* println("s1: " + evalToTerm(s1))
-    println("s2: " + evalToTerm(s2))
-    println("s3: " + evalToTerm(s3))
-    println("s4: " + evalToTerm(s3))*/
+    }
   }
+
+
 }

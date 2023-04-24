@@ -12,8 +12,6 @@ object TransducerPreOp {
 
 class TransducerPreOp(t : Transducer) extends PreOp {
   override def apply(resultConstraint: Automaton, seqTheory: SeqTheory): Iterator[Seq[Automaton]] = {
-    println("applying preop transducer" + t + " on " + resultConstraint)
-    println("preimage test" + t.preImage(resultConstraint))
     (Iterator(Seq(t.preImage(resultConstraint))))
   }
 

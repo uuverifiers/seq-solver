@@ -10,7 +10,12 @@ import seqSolver.automataIntern.ParametricAutomaton
 
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 import scala.collection.JavaConverters._
-object SRATest extends App {
+
+object SRATest{
+
+}
+
+class SRATest{
 
   import IExpression._
 
@@ -64,7 +69,7 @@ object SRATest extends App {
         new SFAInputMove(19, 20, small_d),
         new SFAInputMove(20, 21, colon),
         new SFAInputMove(21, 22, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
-        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
+        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p1)))),
         new SFAInputMove(23, 24, num),
         new SFAInputMove(24, 25, dot),
         new SFAInputMove(25, 26, num),
@@ -178,7 +183,7 @@ object SRATest extends App {
         new SFAInputMove(19, 20, small_d),
         new SFAInputMove(20, 21, colon),
         new SFAInputMove(21, 22, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
-        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
+        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p1)))),
         new SFAInputMove(23, 24, pt.MkAnd(num, pt.FromFormula(c === i(p2)))),
         new SFAInputMove(24, 25, dot),
         new SFAInputMove(25, 26, pt.MkAnd(num, pt.FromFormula(c === i(p3)))),
@@ -236,7 +241,7 @@ object SRATest extends App {
         new SFAInputMove(19, 20, small_d),
         new SFAInputMove(20, 21, colon),
         new SFAInputMove(21, 22, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
-        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
+        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p1)))),
         new SFAInputMove(23, 24, pt.MkAnd(num, pt.FromFormula(c === i(p2)))),
         new SFAInputMove(24, 25, dot),
         new SFAInputMove(25, 26, pt.MkAnd(num, pt.FromFormula(c === i(p3)))),
@@ -293,7 +298,7 @@ object SRATest extends App {
         new SFAInputMove(19, 20, small_d),
         new SFAInputMove(20, 21, colon),
         new SFAInputMove(21, 22, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
-        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p0)))),
+        new SFAInputMove(22, 23, pt.MkAnd(num, pt.FromFormula(c === i(p1)))),
         new SFAInputMove(23, 24, pt.MkAnd(num, pt.FromFormula(c === i(p2)))),
         new SFAInputMove(24, 25, dot),
         new SFAInputMove(25, 26, pt.MkAnd(num, pt.FromFormula(c === i(p3)))),
@@ -737,10 +742,8 @@ object SRATest extends App {
 
       )
 
-      println("trans" + transitions)
 
       val aut = SFA.MkSFA(transitions.asJava, 0, List(new Integer(39)).asJava, pt)
-      println("aut " + aut)
       new ParametricAutomaton(aut, pt)
     }
     prC9
@@ -802,9 +805,9 @@ object SRATest extends App {
     prCL9
   }
 
-  def test_PR_C2_Emptiness(): Unit = {
+  def test_PR_C2_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserC2)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -820,9 +823,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL2_Emptiness(): Unit = {
+  def test_PR_CL2_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL2)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -838,9 +841,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C3_Emptiness(): Unit = {
+  def test_PR_C3_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserC3)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -856,9 +859,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL3_Emptiness(): Unit = {
+  def test_PR_CL3_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL3)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -874,9 +877,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C4_Emptiness(): Unit = {
+  def test_PR_C4_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserC4)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -892,9 +895,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL4_Emptiness(): Unit = {
+  def test_PR_CL4_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL4)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -910,9 +913,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C6_Emptiness(): Unit = {
+  def test_PR_C6_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserC6)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -928,9 +931,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL6_Emptiness(): Unit = {
+  def test_PR_CL6_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL6)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -946,9 +949,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C9_Emptiness(): Unit = {
+  def test_PR_C9_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserC9)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -964,9 +967,9 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL9_Emptiness(): Unit = {
+  def test_PR_CL9_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getProductParserCL9)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -982,9 +985,9 @@ object SRATest extends App {
 
   }
 
-  def test_IP_2_Emptiness(): Unit = {
+  def test_IP_2_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getIP2PacketParser())
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1000,9 +1003,9 @@ object SRATest extends App {
 
   }
 
-  def test_IP_3_Emptiness(): Unit = {
+  def test_IP_3_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1018,9 +1021,27 @@ object SRATest extends App {
 
   }
 
-  def test_IP_6_Emptiness(): Unit = {
+  def test_IP_4_Emptiness(enable : Boolean): Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getIP4PacketParser)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_IP_6_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1036,9 +1057,9 @@ object SRATest extends App {
 
   }
 
-  def test_IP_9_Emptiness(): Unit = {
+  def test_IP_9_Emptiness(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1054,10 +1075,10 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL2_C2_Inclusion(): Unit = {
+  def test_PR_CL2_C2_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC2)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL2)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1074,10 +1095,30 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL3_C3_Inclusion(): Unit = {
+  def test_PR_C2_CL2_Inclusion(enable : Boolean): Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC2)
+    val autId2 = seqTheory.autDatabase.registerAut(!getProductParserCL2)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL3_C3_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC3)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL3)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1093,11 +1134,30 @@ object SRATest extends App {
     }
 
   }
+  def test_PR_C3_CL3_Inclusion(enable : Boolean): Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC3)
+    val autId2 = seqTheory.autDatabase.registerAut(!getProductParserCL3)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
 
-  def test_PR_CL4_C4_Inclusion(): Unit = {
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL4_C4_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC4)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL4)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1114,10 +1174,30 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL6_C6_Inclusion(): Unit = {
+  def test_PR_C4_CL4_Inclusion(enable : Boolean): Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC4)
+    val autId2 = seqTheory.autDatabase.registerAut(!getProductParserCL4)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL6_C6_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC6)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL6)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1134,10 +1214,30 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL9_C9_Inclusion(): Unit = {
+  def test_PR_C6_CL6_Inclusion(enable : Boolean): Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC6)
+    val autId2 = seqTheory.autDatabase.registerAut(!getProductParserCL6)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_CL9_C9_Inclusion(enable : Boolean) : Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC9)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL9)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1154,10 +1254,30 @@ object SRATest extends App {
 
   }
 
-  def test_PR_IP3_IP2_Inclusion(): Unit = {
+  def test_PR_C9_CL9_Inclusion(enable : Boolean) : Boolean = {
+    val autId1 = seqTheory.autDatabase.registerAut(getProductParserC9)
+    val autId2 = seqTheory.autDatabase.registerAut(!getProductParserCL9)
+    SimpleAPI.withProver(enableAssert = enable) { p =>
+      import p._
+
+      addTheory(seqTheory)
+
+      import seqTheory.{SeqSort, seq_in_re_id, seq_reverse}
+
+      var s1 = createConstant("s1", SeqSort)
+      // membership in parameterised automaton
+      !!(seq_in_re_id(s1, autId1))
+      !!(seq_in_re_id(s1, autId2))
+
+      ??? == ProverStatus.Sat
+    }
+
+  }
+
+  def test_PR_IP3_IP2_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP2PacketParser())
     val autId2 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1173,10 +1293,10 @@ object SRATest extends App {
     }
 
   }
-  def test_PR_IP4_IP3_Inclusion(): Unit = {
+  def test_PR_IP4_IP3_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP3PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP4PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1193,10 +1313,10 @@ object SRATest extends App {
 
   }
 
-  def test_PR_IP6_IP4_Inclusion(): Unit = {
+  def test_PR_IP6_IP4_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP4PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1213,10 +1333,10 @@ object SRATest extends App {
 
   }
 
-  def test_PR_IP9_IP6_Inclusion(): Unit = {
+  def test_PR_IP9_IP6_Inclusion(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP6PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1233,11 +1353,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C2_Equiv(): Unit = {
+  def test_PR_C2_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC2)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserC2)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1254,11 +1374,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C3_Equiv(): Unit = {
+  def test_PR_C3_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC3)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserC3)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1275,11 +1395,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C4_Equiv(): Unit = {
+  def test_PR_C4_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC4)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserC4)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1296,11 +1416,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C6_Equiv(): Unit = {
+  def test_PR_C6_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC6)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserC6)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1317,11 +1437,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_C9_Equiv(): Unit = {
+  def test_PR_C9_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserC9)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserC9)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1338,11 +1458,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL2_Equiv(): Unit = {
+  def test_PR_CL2_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL2)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL2)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1359,11 +1479,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL3_Equiv(): Unit = {
+  def test_PR_CL3_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL3)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL3)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1380,11 +1500,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL4_Equiv(): Unit = {
+  def test_PR_CL4_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL4)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL4)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1401,11 +1521,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL6_Equiv(): Unit = {
+  def test_PR_CL6_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL6)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL6)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1422,11 +1542,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_CL9_Equiv(): Unit = {
+  def test_PR_CL9_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getProductParserCL9)
     val autId2 = seqTheory.autDatabase.registerAut(getProductParserCL9)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1443,11 +1563,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_Ip2_Equiv(): Unit = {
+  def test_PR_Ip2_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP2PacketParser())
     val autId2 = seqTheory.autDatabase.registerAut(getIP2PacketParser())
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1464,11 +1584,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_Ip3_Equiv(): Unit = {
+  def test_PR_Ip3_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP3PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP3PacketParser)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1485,11 +1605,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_Ip4_Equiv(): Unit = {
+  def test_PR_Ip4_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP4PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP4PacketParser)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1506,11 +1626,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_Ip6_Equiv(): Unit = {
+  def test_PR_Ip6_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP6PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP6PacketParser)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1527,11 +1647,11 @@ object SRATest extends App {
 
   }
 
-  def test_PR_Ip9_Equiv(): Unit = {
+  def test_PR_Ip9_Equiv(enable : Boolean): Boolean = {
     val autId1 = seqTheory.autDatabase.registerAut(!getIP9PacketParser)
     val autId2 = seqTheory.autDatabase.registerAut(getIP9PacketParser)
 
-    SimpleAPI.withProver(enableAssert = true) { p =>
+    SimpleAPI.withProver(enableAssert = enable) { p =>
       import p._
 
       addTheory(seqTheory)
@@ -1547,5 +1667,6 @@ object SRATest extends App {
     }
 
   }
+
 
 }

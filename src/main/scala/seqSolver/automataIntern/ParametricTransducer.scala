@@ -54,7 +54,6 @@ class ParametricTransducer(val underlying : SFT[Conjunction, ITerm, ITerm], pt :
 
   def getOutputRec(input : Seq[ITerm], prover: ap.SimpleAPI, currentState : Int) : Option[Seq[ITerm]] = {
     import ap.parser.IExpression._
-    println("test1")
     if (input.isEmpty){
       if (underlying.isFinalState(currentState)){
         return Some(Seq())
@@ -90,7 +89,6 @@ class ParametricTransducer(val underlying : SFT[Conjunction, ITerm, ITerm], pt :
             else{
               // do nothing
             }
-
           }
         }
       }

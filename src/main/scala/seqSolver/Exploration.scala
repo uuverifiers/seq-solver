@@ -86,7 +86,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                            val initialConstraints : Seq[(Term, Automaton)]) {
 
 
-  println("Running backwards propagation")
+  //println("Running backwards propagation")
 
   private val (allTerms, sortedFunApps, ignoredApps)
               : (Set[Term],
@@ -186,7 +186,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       for (ind <- term2Index get arg)
         coveredTerms += ind
 
-    println("additional constraints " + additionalConstraints)
     initialConstraints ++ additionalConstraints
 
   }
@@ -195,7 +194,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
   private val constraintStores = new MHashMap[Term, ConstraintStore]
 
   def findModel : Option[Map[Term, Seq[ITerm]]] = {
-    println("Find model in Exploration called line 197" + initialConstraints)
     for (t <- allTerms)
       constraintStores.put(t, newStore(t))
 
@@ -230,15 +228,14 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
     case List() => {
       import ap.parser.IExpression._
-      println("Trying to contruct model")
       val model = new MHashMap[Term, Seq[ITerm]]
 
       val input = new ArrayBuffer[Automaton]
       for (t <- leafTerms){
         val store = constraintStores(t)
         // TODO store contents can be empty?
-        println("stores "+t + store.getContents)
         val _tmpIntersection = SFAUtilities.intersection(store.getContents)
+        println(t, "\n" ,_tmpIntersection)
         if (_tmpIntersection.nonEmpty){
           input += _tmpIntersection.get
         }
@@ -253,20 +250,21 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
       val result = parameterCheck(input.toList, prover, _tmp2)
 
+      println("result is not empty?", result, "inputs : ", input.toList)
 
       // TODO put parameters in model
       if (result.isEmpty){
         // extract model
         for ((t, word) <- leafTerms zip words) {
-          println("leaft " + t + " gets value " + word)
           model.put(t, (for (l <- word) yield evalTerm(l)(parameterProver).get).toList)
 
         }
+
         for (p <- seqTheory.parameterTheory.parameters){
-          println("par " + p + " gets value " + Seq(evalTerm(p)(parameterProver).get))
           prover.addAssertion(p === evalTerm(p)(parameterProver).get)
           model.put(p, Seq(evalTerm(p)(parameterProver).get))
         }
+        println(model)
         val allFunApps : Iterator[(PreOp, Seq[Term], Term)] =
           (for ((ops, res) <- sortedFunApps.reverseIterator;
                 (op, args) <- ops.iterator)
@@ -277,13 +275,11 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
         for ((op, args, res) <- allFunApps;
              argValues = args map model) {
-          println("arg va " + argValues + " op " + op + " args " + args + " res " + res)
 
           //
           val resSeq = op.eval(argValues, prover) match {
             case Some(v) => v
             case None => {
-              println("about to throw exceptiob on " + op + " " + argValues)
               throw new Exception(
                 "model extraction failed: " + op + "is not defined for " + argValues)
             }
@@ -307,7 +303,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
           model.put(res, resValue)
         }
-        println("throwing model: " + model + " terms " + allTerms)
         throw FoundModel(model.toMap)
       }
       else{
@@ -316,8 +311,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
     }
 
     case (op, args, res) :: otherApps => {
-      Console.err.println("dfExplore, depth " + apps.size)
-      println("op " + op, "args " + args,"res " + res, "otherapps " + otherApps)
+      //Console.err.println("dfExplore, depth " + apps.size)
       dfExploreOp(op, args, res, constraintStores(res).getContents,
         otherApps)
     }
@@ -333,10 +327,8 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
       val newConstraintsIt = op(resAut, seqTheory)
 
-      println("applying operator ", newConstraintsIt)
       while (newConstraintsIt.hasNext){
         val argCS = newConstraintsIt.next()
-        println("args " + args)
         for (a <- args)
           constraintStores(a).push
         try {
@@ -367,7 +359,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         } finally {
           for (a <- args) {
             constraintStores(a).pop
-            println("args: ", args)
           }
 
         }
@@ -421,7 +412,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       case aut1 :: otherauts => {
 
         val aut = aut1.asInstanceOf[ParametricAutomaton]
-        println("aut " + aut)
         val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
         val s = mutable.Stack[Int]()
@@ -458,14 +448,12 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                       tmp_word += new_const
                     }
                   }
-                  println(tmp_conjunction)
 
                   parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, parameterProver.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(current_state)
                   if (parameterProver.??? == ProverStatus.Sat){
                     words += tmp_word
-                    println(words)
                     // the next check might come to the conclusion that this path cannot be part of the solution
                     // TODO none = sat; otherwise return conflicts
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
@@ -513,7 +501,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     var subset = false
                     for (successor_con <- successor_conj){
                       if (new_conj.toSet.subsetOf(successor_con.toSet)){
-                        println(successor_con, new_conj)
                         subset = true
                         // TODO break?
                       }
@@ -539,14 +526,11 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                         prover.addAssertion(Conjunction.conj(tmp_conjunction, prover.order))
                         // TODO maybe faster without this check?
                         if (prover.??? == ProverStatus.Sat){
-                          println("Push successor " + successor.to)
                           s.push(successor.to)
                           successor_new_bag += (new_conj)
-                          println("Successor bag : " + new_conj + " " + prover.???)
                           //constraints.put(successor.to, successor_conj)
                         }
                         else{
-                          println(new_conj)
                           // collect conflicts?
                         }
                       }
@@ -704,7 +688,6 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
           if (!watchAutomata(inconsistentAutomata(autInd), autInd)){
             //constraints have become inconsistent
             watchedAutomata.put(aut, potentialConflicts)
-            println("Stored conflict applies!")
             return Some(for(a <- inconsistentAutomata(autInd).toList)
                         yield TermConstraint(t,a))
           }
