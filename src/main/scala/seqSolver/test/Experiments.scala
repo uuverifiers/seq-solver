@@ -13,13 +13,16 @@ object Experiments extends App{
     result
   }
 
+  time{assert(DijkstraTest.run(false))}("Dijkstra")
+  time{assert(DijkstraTest.run(false))}("Dijkstra")
+  time{assert(DijkstraTest.run(false))}("Dijkstra")
+
   time {assert(QuickSort.run(false))}("Quicksort")
 
   time{assert(BakeryTest.runInv0(false))
   assert(BakeryTest.runInv1(false))
   assert(BakeryTest.runInv2(false))
   assert(BakeryTest.runInv3(false))}("Bakery Protocol")
-  time{assert(DijkstraTest.run(false))}("Dijkstra")
 
   val sraTest = new SRATest
 

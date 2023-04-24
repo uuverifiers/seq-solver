@@ -86,7 +86,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                            val initialConstraints : Seq[(Term, Automaton)]) {
 
 
-  //println("Running backwards propagation")
 
   private val (allTerms, sortedFunApps, ignoredApps)
               : (Set[Term],
@@ -231,13 +230,16 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       val model = new MHashMap[Term, Seq[ITerm]]
 
       val input = new ArrayBuffer[Automaton]
+      val termConstraints = new ArrayBuffer[TermConstraint]
       for (t <- leafTerms){
         val store = constraintStores(t)
         // TODO store contents can be empty?
         val _tmpIntersection = SFAUtilities.intersection(store.getContents)
         if (_tmpIntersection.nonEmpty){
+          termConstraints += TermConstraint(t, _tmpIntersection.get)
           input += _tmpIntersection.get
         }
+
       }
       // TODO vereinfache disjunktion zu konjunktion
       val _tmp2 = new MHashMap[Automaton, MHashMap[Integer, MHashSet[Seq[Conjunction]]]]()
@@ -302,7 +304,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         throw FoundModel(model.toMap)
       }
       else{
-        result.get
+        termConstraints
       }
     }
 
@@ -406,7 +408,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
     allAutomata match {
       case aut1 :: otherauts => {
-
         val aut = aut1.asInstanceOf[ParametricAutomaton]
         val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
@@ -439,7 +440,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                       counter += 1
                       parameterProver.addConstant(new_const)
                       val z = ConstantSubst(seqTheory.parameterTheory.charSymbol, new_const, parameterProver.order)(conj)
-
                       tmp_conjunction += z
                       tmp_word += new_const
                     }
@@ -450,10 +450,9 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   path_set.add(current_state)
                   if (parameterProver.??? == ProverStatus.Sat){
                     words += tmp_word
-                    // the next check might come to the conclusion that this path cannot be part of the solution
-                    // TODO none = sat; otherwise return conflicts
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
+
                       return None
                     }
                     else{
@@ -503,14 +502,13 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                     }
 
                     if (subset) {
-                      successor_new_bag = constraint_bags
+                      // TODO optimize subset
+                      successor_new_bag += new_conj
                       // do nothing
                     }
                     else{
-                      // TODO checking this is not that straightforward
                       var counter = 0
                       val tmp_conjunction = new ArrayBuffer[Conjunction]
-                      // TODO keep a set of constants and only create new ones when we run out?
                       for (conj <- new_conj){
                         val new_const = seqTheory.parameterTheory.charSort newConstant("a" + counter)
                         counter += 1
@@ -551,7 +549,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
               case Some(constraint_bags) => {
                 for (conjunction <- constraint_bags){
                   parameterProver.push
-                  // TODO check if it is sat for entire automaton up to here
                   var counter = 0
                   val tmp_conjunction = new ArrayBuffer[Conjunction]
                   val tmp_word = new ArrayBuffer[ConstantTerm]

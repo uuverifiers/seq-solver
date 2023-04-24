@@ -137,8 +137,8 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
    */
   override def MkSubstFuncFunc(f1: ITerm, f2: ITerm): ITerm = {
     val l = new MHashMap[ConstantTerm, ITerm]
-    l.put(charSymbol, f1)
-    ConstantSubstVisitor(f2, l)
+    l.put(charSymbol, f2)
+    ConstantSubstVisitor(f1, l)
   }
 
   /**
