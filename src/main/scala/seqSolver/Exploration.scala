@@ -235,7 +235,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         val store = constraintStores(t)
         // TODO store contents can be empty?
         val _tmpIntersection = SFAUtilities.intersection(store.getContents)
-        println(t, "\n" ,_tmpIntersection)
         if (_tmpIntersection.nonEmpty){
           input += _tmpIntersection.get
         }
@@ -250,7 +249,6 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
       val result = parameterCheck(input.toList, prover, _tmp2)
 
-      println("result is not empty?", result, "inputs : ", input.toList)
 
       // TODO put parameters in model
       if (result.isEmpty){
@@ -259,12 +257,10 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
           model.put(t, (for (l <- word) yield evalTerm(l)(parameterProver).get).toList)
 
         }
-
         for (p <- seqTheory.parameterTheory.parameters){
           prover.addAssertion(p === evalTerm(p)(parameterProver).get)
           model.put(p, Seq(evalTerm(p)(parameterProver).get))
         }
-        println(model)
         val allFunApps : Iterator[(PreOp, Seq[Term], Term)] =
           (for ((ops, res) <- sortedFunApps.reverseIterator;
                 (op, args) <- ops.iterator)
