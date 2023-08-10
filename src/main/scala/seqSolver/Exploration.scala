@@ -402,6 +402,15 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
   val words : ArrayBuffer[ArrayBuffer[ConstantTerm]]
 
+  private def isParameterSat(prover : SimpleAPI) : Boolean =
+    prover.??? match {
+      case ProverStatus.Sat   => true
+      case ProverStatus.Unsat => false
+      case s =>
+        throw new Exception(
+          "did not expect status " + s + " of parameter constraints")
+    }
+
   // TODO sequences of conjunctions
   // TODO kann man vorberechnen für jeden automaton
   def parameterCheck(allAutomata : List[Automaton], prover : SimpleAPI, automaton_to_constraints : MHashMap[Automaton,MHashMap[Integer, MHashSet[Seq[Conjunction]]]]): Option[Seq[TermConstraint]] = prover.scope{
@@ -448,7 +457,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, parameterProver.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(current_state)
-                  if (parameterProver.??? == ProverStatus.Sat){
+                  if (isParameterSat(parameterProver)){
                     words += tmp_word
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
@@ -519,7 +528,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                       prover.scope{
                         prover.addAssertion(Conjunction.conj(tmp_conjunction, prover.order))
                         // TODO maybe faster without this check?
-                        if (prover.??? == ProverStatus.Sat){
+                        if (isParameterSat(prover)){
                           s.push(successor.to)
                           successor_new_bag += (new_conj)
                           //constraints.put(successor.to, successor_conj)
@@ -564,7 +573,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
                   parameterProver.addAssertion(Conjunction.conj(tmp_conjunction, prover.order))
                   // if it is sat then we have found a viable path and can continue onwards
                   path_set.add(final_state)
-                  if (parameterProver.??? == ProverStatus.Sat){
+                  if (isParameterSat(parameterProver)){
                     words += tmp_word
                     val l = parameterCheck(otherauts, prover, automaton_to_constraints)
                     if (l.isEmpty) {
