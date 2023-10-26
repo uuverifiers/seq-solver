@@ -2,11 +2,12 @@ package seqSolver.test
 
 import ap.SimpleAPI
 import ap.api.SimpleAPI.ProverStatus
-import ap.parser.{IExpression, ITerm}
+import ap.parser.{IExpression, ITerm, IFormula}
 import ap.terfor.conjunctions.Conjunction
 import automata.sfa.{SFA, SFAInputMove, SFAEpsilon}
+import transducers.sft.{SFT, SFTEpsilon, SFTInputMove}
 import seqSolver.SeqTheory
-import seqSolver.automataIntern.ParametricAutomaton
+import seqSolver.automataIntern.{ParametricAutomaton, ParametricTransducer}
 import ap.theories.ADT
 
 import scala.collection.JavaConverters._
@@ -37,6 +38,19 @@ object MsgPassing extends App {
   val pt = seqTheory.parameterTheory
   val Seq(c, c1) = seqTheory.parameterTheoryChars
 
+  class RichITerm(underlying : ITerm) {
+    def ++(that : ITerm) : ITerm =
+      seqTheory.seq_++(underlying, that)
+    def ∈(regexId : Int) : IFormula =
+      seqTheory.seq_in_re_id(underlying, regexId)
+    def ∉(regexId : Int) : IFormula =
+      !seqTheory.seq_in_re_id(underlying, regexId)
+    def tmap(transducerId : Int) : ITerm =
+      seqTheory.seq_in_relation_id(underlying, transducerId)
+  }
+
+  implicit def toRichTerm(t : ITerm) : RichITerm = new RichITerm(t)
+
   /**
    * Definition of the regular languages involved in the assertions.
    */
@@ -55,6 +69,12 @@ object MsgPassing extends App {
     genAut(List(
              new SFAInputMove(0, 1, pt.FromFormula(true)),
              new SFAInputMove(1, 1, pt.FromFormula(true))
+           ),
+           List(1))
+
+  val len1 =
+    genAut(List(
+             new SFAInputMove(0, 1, pt.FromFormula(true))
            ),
            List(1))
 
@@ -128,10 +148,31 @@ object MsgPassing extends App {
            ),
            List(2))
 
+  /**
+   * Transducers needed in the examples.
+   */
+
+  def jlist[A](els : A*) : java.util.List[A] = els.asJava
+
+  def genTrans(transitions : Seq[pt.SFTMove],
+               accepting : Seq[Int]) : Int = {
+    val aut = SFT.MkSFT(transitions.asJava,
+                0, (for (a <- accepting)
+                    yield (new Integer(a) ->
+                             Set(jlist[ITerm]()).asJava)).toMap.asJava,
+                        pt)
+    val paut = new ParametricTransducer(aut, pt)
+    seqTheory.autDatabase.registerTrans(paut)
+  }
+
+  val assignX1 =
+    genTrans(List(new SFTInputMove(0, 0, Conjunction.TRUE,
+                                   jlist(store(1, y(c))))),
+             List(0))
 
   SimpleAPI.withProver(enableAssert = true) { p =>
     import p._
-    import seqTheory.{SeqSort, seq_in_re_id, seq_++}
+    import seqTheory.{SeqSort, seq_in_re_id, seq_in_relation_id}
 
     addTheory(seqTheory)
 
@@ -140,15 +181,19 @@ object MsgPassing extends App {
     val pot  = createConstant("pot", SeqSort)
     val pot2 = createConstant("pot2", SeqSort)
     val l    = createConstant("l", SeqSort)
+    val l1   = createConstant("l1", SeqSort)
+    val l2   = createConstant("l2", SeqSort)
+    val l3   = createConstant("l3", SeqSort)
+    val lP   = createConstant("lP", SeqSort)
 
     // only consider non-empty sequences of stores
-    !! (seq_in_re_id(pot, nonEmpty))
+    !! (pot ∈ nonEmpty)
 
     scope {
       // { T0 sees [y != 1] } ... { T2 sees [y != 1]; [ x == 1 ] }
       print("T2 valid Hoare triple 1 ... ")
-      !! (seq_in_re_id(pot, aut1))
-      ?? (!seq_in_re_id(pot, aut3Comp))
+      !! (pot ∈ aut1)
+      ?? (pot ∉ aut3Comp)
       println(???)
     }
 
@@ -166,20 +211,36 @@ object MsgPassing extends App {
     scope {
       // Stability of { T2 sees [y != 1]; [ x == 1 ] } under STORE(x, 1)
       print("T2 stable assertion 1 ... ")
-      !! (seq_in_re_id(pot, aut4))
-      ?? (!seq_in_re_id(pot, aut3Comp))
+      !! (pot ∈ aut4)
+      ?? (pot ∉ aut3Comp)
       println(???)
     }
 
     scope {
       // Stability of { a==1 => T2 sees [ x == 1 ] } under STORE(x, 1)
-      print("T2 stable assertion 2 ... ")
+      print("T2 stable assertion 2 (version 1) ... ")
       // Probably not the right encoding: let's just say that the effect
       // of STORE is to append some elements to the T2-potential
-      !! (a===1 ==> seq_in_re_id(pot, aut2))
-      !! (seq_in_re_id(l, aut2))
-      !! (pot2 === seq_++(pot, l))
-      ?? (a===1 ==> !seq_in_re_id(pot2, aut2Comp))
+      !! (a===1 ==> (pot ∈ aut2))
+      !! (l ∈ aut2)
+      !! (pot2 === pot ++ l)
+      ?? (a===1 ==> (pot2 ∉ aut2Comp))
+      println(???)
+    }
+
+    scope {
+      // Stability of { a==1 => T2 sees [ x == 1 ] } under STORE(x, 1)
+      print("T2 stable assertion 2 (version 2) ... ")
+
+      // (this does not seem to be working properly yet!)
+
+      !! (a === 1 ==> (pot ∈ aut2))
+
+      !! (pot === l1 ++ l2 ++ l3)
+      !! (lP === seq_in_relation_id(l2 ++ l3, assignX1))
+      !! (pot2 === l1 ++ l2 ++ lP)
+      
+      ?? (a === 1 ==> (pot2 ∉ aut2Comp))
       println(???)
     }
 
