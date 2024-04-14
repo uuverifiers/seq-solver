@@ -6,7 +6,7 @@ scalaVersion := "2.11.8"
 
 Compile / mainClass := Some("seqSolver.SeqSolverMain")
 
-resolvers += ("uuverifiers" at "http://logicrunch.research.it.uu.se/maven/").withAllowInsecureProtocol(true)
+resolvers += "uuverifiers" at "https://eldarica.org/maven/"
 
 libraryDependencies += "uuverifiers" %% "princess" % "nightly-SNAPSHOT"
 
