@@ -2,7 +2,7 @@ name := "seq-solver"
 
 version := "0.1"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.13.13"
 
 Compile / mainClass := Some("seqSolver.SeqSolverMain")
 

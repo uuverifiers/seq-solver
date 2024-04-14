@@ -10,7 +10,7 @@ import SimpleAPI.ProverStatus
 import ap.theories.Theory
 import ap.parser.{ConstantSubstVisitor, IConstant, IFormula, IFunction, ITerm}
 import ap.types.Sort
-import ap.terfor.{ConstantTerm, Term}
+import ap.terfor.{ConstantTerm, Term, TermOrder}
 import ap.terfor.conjunctions.{Conjunction, Quantifier}
 import ap.terfor.substitutions.ConstantSubst
 import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
@@ -55,7 +55,7 @@ class ParameterTheory(val charSymbols : IndexedSeq[ConstantTerm],
   prover addConstantsRaw charSymbols
   prover addConstantsRaw parameters
 
-  implicit val order = prover.order
+  implicit val order : TermOrder = prover.order
 
   private val iCharSymbol0 = IConstant(charSymbol)
   private val iCharSymbol1 = IConstant(charSymbols(1))

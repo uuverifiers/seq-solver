@@ -15,8 +15,7 @@ import seqSolver.preop.PreOp
 
 import scala.util.Left
 import scala.collection.immutable.Nil.distinct
-import scala.collection.{breakOut, mutable}
-import scala.collection.mutable.{ArrayBuffer, ArrayStack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
+import scala.collection.mutable.{ArrayBuffer, Stack, LinkedHashSet, BitSet => MBitSet, HashMap => MHashMap, HashSet => MHashSet}
 
 object Exploration {
 
@@ -137,7 +136,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
       }
     }
 
-    (argTermNum.keySet.toSet, sortedApps, ignoredApps)
+    (argTermNum.keySet.toSet, sortedApps.toSeq, ignoredApps.toSeq)
 
   }
 
@@ -304,7 +303,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         throw FoundModel(model.toMap)
       }
       else{
-        termConstraints
+        termConstraints.toSeq
       }
     }
 
@@ -366,7 +365,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
   }
 
 
-  private val parameterPartitionStack = new ArrayStack[Int]
+  private val parameterPartitionStack = new Stack[Int]
   private val parameterPartitions = new ArrayBuffer[Seq[TermConstraint]]
 
   protected def addParameterConstraint(constraint : TermConstraint, sources : Seq[TermConstraint]) : Unit = {
@@ -393,7 +392,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
 
   private def popLengthConstraints() : Unit = {
     parameterProver.pop
-    parameterPartitions reduceToSize(parameterPartitionStack.size)
+    Seqs.reduceToSize(parameterPartitions, parameterPartitionStack.size)
   }
 
   protected def newStore(t : Term) : ConstraintStore
@@ -420,7 +419,7 @@ abstract class Exploration(val funApps: Seq[(PreOp, Seq[Term], Term)],
         val aut = aut1.asInstanceOf[ParametricAutomaton]
         val constraints = automaton_to_constraints.getOrElse(aut, new MHashMap)
         val path_set = new MHashSet[Integer]
-        val s = mutable.Stack[Int]()
+        val s = new Stack[Int]
         val _tmpset = new MHashSet[Seq[Conjunction]]()
         _tmpset.add(Seq(Conjunction.TRUE))
         constraints.put(aut.initialState, _tmpset)
@@ -640,7 +639,7 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
 
     private val constraints = new ArrayBuffer[Automaton]
     private val constraintSet = new MHashSet[Automaton]
-    private val constraintStack = new mutable.ArrayStack[Int]
+    private val constraintStack = new Stack[Int]
 
     // Map from watched automata to the indexes of
     // <code>inconsistentAutomata</code> that is watched
@@ -662,7 +661,7 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
       val oldSize = constraintStack.pop
       while (constraints.size > oldSize) {
         constraintSet -= constraints.last
-        constraints reduceToSize(constraints.size -1)
+        Seqs.reduceToSize(constraints, constraints.size -1)
       }
     }
 
@@ -696,7 +695,7 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
 
           potentialConflicts = potentialConflicts.tail
         }
-        SFAUtilities.findUnsatCore(constraints, aut) match {
+        SFAUtilities.findUnsatCore(constraints.toSeq, aut) match {
           case Some(core) => {
             addIncAutomata(core)
             Some(for (a <- core.toList) yield TermConstraint(t,a))
@@ -719,7 +718,8 @@ class LazyExploration(_funApps : Seq[(PreOp, Seq[Term], Term)],
      */
     override def getCompleteContents: List[Automaton] = constraints.toList
 
-    private def intersection : Option[Automaton] = SFAUtilities.intersection(constraints)
+    private def intersection : Option[Automaton] =
+      SFAUtilities.intersection(constraints.toSeq)
 
     /**
      * Make sure that the exact length abstraction for the intersection of the

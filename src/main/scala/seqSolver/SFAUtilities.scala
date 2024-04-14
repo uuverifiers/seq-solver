@@ -61,7 +61,7 @@ object SFAUtilities {
       if (areConsistentAutomata(consideredAuts))
         consideredAuts.insert(i, removedAut)
     }
-    Some(consideredAuts)
+    Some(consideredAuts.toSeq)
   }
 
   def areConsistentAutomata(automatons: ArrayBuffer[Automaton]) : Boolean =

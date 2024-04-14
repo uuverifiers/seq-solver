@@ -153,7 +153,8 @@ class SeqTheoryPlugin(theory : SeqTheory) extends Plugin {
 
       pProver.addAssertion(equations)
 
-      val exploration = Exploration.lazyExp(funApps,theory, pProver, regexes)
+      val exploration =
+        Exploration.lazyExp(funApps.toSeq, theory, pProver, regexes.toSeq)
       val res = exploration.findModel
 
 
